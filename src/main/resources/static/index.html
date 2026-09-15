@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sunrise Dental Clinic Management System</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0d9488 100%);
+            padding: 1.5rem;
+        }
+        .login-card {
+            width: 100%;
+            max-width: 440px;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .login-logo {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            color: #fff;
+            margin: 0 auto 1.25rem;
+            box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.4);
+        }
+        .demo-credentials-box {
+            background-color: #f1f5f9;
+            border-left: 4px solid #0d9488;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            margin-top: 1.5rem;
+        }
+    </style>
+</head>
+<body class="login-page">
+
+    <div class="login-card">
+        <div class="text-center mb-4">
+            <div class="login-logo">
+                <i class="bi bi-heart-pulse-fill"></i>
+            </div>
+            <h3 class="fw-bold text-dark mb-1">Sunrise Dental Clinic</h3>
+            <p class="text-muted small">Appointment & Patient Management System (Colombo)</p>
+        </div>
+
+        <div id="loginAlert" class="alert alert-danger d-none py-2" role="alert"></div>
+
+        <form id="loginForm" novalidate>
+            <div class="mb-3">
+                <label for="username" class="form-label fw-semibold small text-secondary">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="bi bi-person text-muted"></i></span>
+                    <input type="text" class="form-control" id="username" placeholder="e.g. receptionist" required>
+                </div>
+                <div class="invalid-feedback" id="usernameFeedback">Please enter your username.</div>
+            </div>
+
+            <div class="mb-4">
+                <label for="password" class="form-label fw-semibold small text-secondary">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="bi bi-lock text-muted"></i></span>
+                    <input type="password" class="form-control" id="password" placeholder="••••••••" required>
+                </div>
+                <div class="invalid-feedback" id="passwordFeedback">Please enter your password.</div>
+            </div>
+
+            <button type="submit" class="btn btn-teal w-100 py-2 fs-6 fw-semibold shadow-sm" id="loginBtn">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Clinic Portal
+            </button>
+        </form>
+
+        <div class="demo-credentials-box">
+            <div class="fw-bold text-dark mb-1"><i class="bi bi-info-circle me-1 text-teal"></i> University Demo Credentials:</div>
+            <div><strong>Admin:</strong> <code>admin</code> / <code>admin123</code></div>
+            <div><strong>Receptionist:</strong> <code>receptionist</code> / <code>recept123</code></div>
+            <div><strong>Dentist:</strong> <code>dr.perera</code> / <code>dentist123</code></div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const alertBox = document.getElementById('loginAlert');
+            const loginBtn = document.getElementById('loginBtn');
+
+            alertBox.classList.add('d-none');
+            usernameInput.classList.remove('is-invalid');
+            passwordInput.classList.remove('is-invalid');
+
+            let isValid = true;
+            if (!usernameInput.value.trim()) {
+                usernameInput.classList.add('is-invalid');
+                isValid = false;
+            }
+            if (!passwordInput.value.trim()) {
+                passwordInput.classList.add('is-invalid');
+                isValid = false;
+            }
+
+            if (!isValid) return;
+
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Authenticating...';
+
+            try {
+                const response = await apiRequest('/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        username: usernameInput.value.trim(),
+                        password: passwordInput.value.trim()
+                    })
+                });
+
+                setSession(response);
+                window.location.href = 'dashboard.html';
+            } catch (err) {
+                alertBox.textContent = err.message || 'Invalid username or password.';
+                alertBox.classList.remove('d-none');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Clinic Portal';
+            }
+        });
+    </script>
+</body>
+</html>

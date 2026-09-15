@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treatment Catalog - Sunrise Dental Clinic</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+                <div class="sidebar-brand-text">
+                    <h5>Sunrise Dental</h5>
+                    <small>Colombo Center</small>
+                </div>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-section-title">Operations</div>
+                <a href="dashboard.html" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                <a href="appointments.html" class="sidebar-link"><i class="bi bi-calendar-check"></i> Appointments</a>
+                <a href="patients.html" class="sidebar-link"><i class="bi bi-people"></i> Patients</a>
+                <a href="billing.html" class="sidebar-link receptionist-only"><i class="bi bi-receipt"></i> Billing & Payments</a>
+
+                <div class="nav-section-title">Clinical & Catalog</div>
+                <a href="dentists.html" class="sidebar-link"><i class="bi bi-person-badge"></i> Dentists</a>
+                <a href="treatments.html" class="sidebar-link active"><i class="bi bi-journal-medical"></i> Treatments</a>
+
+                <div class="nav-section-title">Management & Support</div>
+                <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-line"></i> Reports & Analytics</a>
+                <a href="help.html" class="sidebar-link"><i class="bi bi-question-circle"></i> Staff Help Guide</a>
+                <a href="users.html" class="sidebar-link admin-only"><i class="bi bi-shield-lock"></i> User Accounts</a>
+            </div>
+            <div class="sidebar-user">
+                <div class="user-badge mb-2">
+                    <div class="user-avatar" id="currentUserAvatar">U</div>
+                    <div class="user-info">
+                        <div class="user-name" id="currentUserName">Loading...</div>
+                        <div class="user-role" id="currentUserRole">STAFF</div>
+                    </div>
+                </div>
+                <button onclick="handleLogout()" class="btn btn-outline-light btn-sm w-100 py-1">
+                    <i class="bi bi-box-arrow-right me-1"></i> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="top-bar">
+                <div class="page-title">
+                    <h1>Treatment Catalog & Pricing</h1>
+                    <p>Configure dental procedures and adjust treatment costs dynamically without altering application code</p>
+                </div>
+                <button class="btn btn-teal admin-only" onclick="openNewTreatmentModal()">
+                    <i class="bi bi-plus-circle me-1"></i> Add New Treatment
+                </button>
+            </div>
+
+            <!-- Treatments Table Card -->
+            <div class="card-custom">
+                <div class="card-header">
+                    <h5><i class="bi bi-journal-check me-2 text-teal"></i>Clinical Services & Pricing Registry</h5>
+                    <span class="badge bg-secondary" id="treatmentCountBadge">0 Treatments</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-custom align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Treatment Procedure Name</th>
+                                    <th>Description</th>
+                                    <th>Consultation Fee (LKR)</th>
+                                    <th>Treatment Cost (LKR)</th>
+                                    <th>Standard Total (LKR)</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="treatmentsTableBody">
+                                <tr>
+                                    <td colspan="8" class="text-center py-4 text-muted">
+                                        <div class="spinner-border spinner-border-sm text-teal me-2" role="status"></div>
+                                        Loading treatment catalog...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Treatment Modal -->
+    <div class="modal fade" id="treatmentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="treatmentModalTitle"><i class="bi bi-journal-plus text-teal me-2"></i>Add Treatment Procedure</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="treatmentForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="treatmentEditId">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label for="trtName" class="form-label fw-semibold small">Treatment Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="trtName" placeholder="e.g. Root Canal Treatment (RCT)" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="trtStatus" class="form-label fw-semibold small">Catalog Status <span class="text-danger">*</span></label>
+                                <select class="form-select" id="trtStatus" required>
+                                    <option value="ACTIVE">ACTIVE (Offered)</option>
+                                    <option value="INACTIVE">INACTIVE (Discontinued)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="trtFee" class="form-label fw-semibold small">Consultation Fee (LKR) <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="trtFee" placeholder="2000.00" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="trtCost" class="form-label fw-semibold small">Treatment Procedure Cost (LKR) <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="trtCost" placeholder="18000.00" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="trtDesc" class="form-label fw-semibold small">Clinical Description & Scope</label>
+                                <textarea class="form-control" id="trtDesc" rows="3" placeholder="Clinical specifics, anesthesia requirements, materials used..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-teal">Save Treatment Pricing</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        let treatmentModal;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = checkAuth();
+            if (!user) return;
+
+            treatmentModal = new bootstrap.Modal(document.getElementById('treatmentModal'));
+            await loadTreatments();
+        });
+
+        async function loadTreatments() {
+            const tbody = document.getElementById('treatmentsTableBody');
+            try {
+                const treatments = await apiRequest('/treatments');
+                document.getElementById('treatmentCountBadge').textContent = `${treatments.length} Procedures`;
+
+                if (!treatments || treatments.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">No treatments found in catalog.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = treatments.map(t => {
+                    const totalStd = (Number(t.consultationFee) + Number(t.treatmentCost)).toFixed(2);
+                    const statusBadge = t.status === 'ACTIVE' ? '<span class="badge bg-success">ACTIVE</span>' : '<span class="badge bg-secondary">INACTIVE</span>';
+                    return `
+                        <tr>
+                            <td><strong class="text-teal">${t.treatmentCode}</strong></td>
+                            <td><div class="fw-semibold">${t.treatmentName}</div></td>
+                            <td><small class="text-muted">${t.description || '—'}</small></td>
+                            <td>Rs. ${Number(t.consultationFee).toLocaleString('en-LK', { minimumFractionDigits: 2 })}</td>
+                            <td>Rs. ${Number(t.treatmentCost).toLocaleString('en-LK', { minimumFractionDigits: 2 })}</td>
+                            <td><strong class="text-dark">Rs. ${Number(totalStd).toLocaleString('en-LK', { minimumFractionDigits: 2 })}</strong></td>
+                            <td>${statusBadge}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-teal admin-only" onclick='openEditTreatmentModal(${JSON.stringify(t)})' title="Adjust Pricing / Details">
+                                    <i class="bi bi-pencil me-1"></i> Edit Price
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">${err.message}</td></tr>`;
+            }
+        }
+
+        function openNewTreatmentModal() {
+            document.getElementById('treatmentForm').reset();
+            document.getElementById('treatmentEditId').value = '';
+            document.getElementById('treatmentModalTitle').innerHTML = '<i class="bi bi-journal-plus text-teal me-2"></i>Add Treatment Procedure';
+            treatmentModal.show();
+        }
+
+        function openEditTreatmentModal(t) {
+            document.getElementById('treatmentEditId').value = t.id;
+            document.getElementById('trtName').value = t.treatmentName;
+            document.getElementById('trtDesc').value = t.description || '';
+            document.getElementById('trtFee').value = t.consultationFee;
+            document.getElementById('trtCost').value = t.treatmentCost;
+            document.getElementById('trtStatus').value = t.status;
+            document.getElementById('treatmentModalTitle').innerHTML = `<i class="bi bi-pencil text-teal me-2"></i>Edit Pricing: ${t.treatmentCode}`;
+            treatmentModal.show();
+        }
+
+        document.getElementById('treatmentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const editId = document.getElementById('treatmentEditId').value;
+            const payload = {
+                treatmentName: document.getElementById('trtName').value.trim(),
+                description: document.getElementById('trtDesc').value.trim() || null,
+                consultationFee: Number(document.getElementById('trtFee').value),
+                treatmentCost: Number(document.getElementById('trtCost').value),
+                status: document.getElementById('trtStatus').value
+            };
+
+            try {
+                if (editId) {
+                    await apiRequest(`/treatments/${editId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(payload)
+                    });
+                    showNotification('Treatment pricing updated in database.', 'success');
+                } else {
+                    const created = await apiRequest('/treatments', {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    showNotification(`Treatment ${created.treatmentName} added to catalog!`, 'success');
+                }
+                treatmentModal.hide();
+                await loadTreatments();
+            } catch (err) {
+                alert(err.message);
+            }
+        });
+    </script>
+</body>
+</html>

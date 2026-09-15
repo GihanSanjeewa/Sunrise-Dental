@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dentists - Sunrise Dental Clinic</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+                <div class="sidebar-brand-text">
+                    <h5>Sunrise Dental</h5>
+                    <small>Colombo Center</small>
+                </div>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-section-title">Operations</div>
+                <a href="dashboard.html" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                <a href="appointments.html" class="sidebar-link"><i class="bi bi-calendar-check"></i> Appointments</a>
+                <a href="patients.html" class="sidebar-link"><i class="bi bi-people"></i> Patients</a>
+                <a href="billing.html" class="sidebar-link receptionist-only"><i class="bi bi-receipt"></i> Billing & Payments</a>
+
+                <div class="nav-section-title">Clinical & Catalog</div>
+                <a href="dentists.html" class="sidebar-link active"><i class="bi bi-person-badge"></i> Dentists</a>
+                <a href="treatments.html" class="sidebar-link"><i class="bi bi-journal-medical"></i> Treatments</a>
+
+                <div class="nav-section-title">Management & Support</div>
+                <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-line"></i> Reports & Analytics</a>
+                <a href="help.html" class="sidebar-link"><i class="bi bi-question-circle"></i> Staff Help Guide</a>
+                <a href="users.html" class="sidebar-link admin-only"><i class="bi bi-shield-lock"></i> User Accounts</a>
+            </div>
+            <div class="sidebar-user">
+                <div class="user-badge mb-2">
+                    <div class="user-avatar" id="currentUserAvatar">U</div>
+                    <div class="user-info">
+                        <div class="user-name" id="currentUserName">Loading...</div>
+                        <div class="user-role" id="currentUserRole">STAFF</div>
+                    </div>
+                </div>
+                <button onclick="handleLogout()" class="btn btn-outline-light btn-sm w-100 py-1">
+                    <i class="bi bi-box-arrow-right me-1"></i> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="top-bar">
+                <div class="page-title">
+                    <h1>Dentist Management</h1>
+                    <p>Manage clinical dental practitioners, specialties, rosters, and practice availability</p>
+                </div>
+                <button class="btn btn-teal admin-only" onclick="openNewDentistModal()">
+                    <i class="bi bi-person-plus-fill me-1"></i> Add New Dentist
+                </button>
+            </div>
+
+            <!-- Search and Filter Bar -->
+            <div class="card-custom mb-3">
+                <div class="card-body py-3">
+                    <div class="row g-2">
+                        <div class="col-md-9">
+                            <input type="text" class="form-control" id="dentistSearchInput" 
+                                   placeholder="Search by Dentist Name, Specialization, or Dentist Number (e.g. D-000001)...">
+                        </div>
+                        <div class="col-md-3 d-flex gap-2">
+                            <button class="btn btn-teal w-100" onclick="searchDentists()"><i class="bi bi-search me-1"></i> Search</button>
+                            <button class="btn btn-outline-secondary" onclick="resetDentistSearch()"><i class="bi bi-arrow-counterclockwise"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dentists Table Card -->
+            <div class="card-custom">
+                <div class="card-header">
+                    <h5><i class="bi bi-person-badge-fill me-2 text-teal"></i>Accredited Dental Specialists</h5>
+                    <span class="badge bg-secondary" id="dentistCountBadge">0 Dentists</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-custom align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Dentist #</th>
+                                    <th>Dentist Name</th>
+                                    <th>Specialization</th>
+                                    <th>Contact Phone</th>
+                                    <th>Email</th>
+                                    <th>Availability Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dentistsTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">
+                                        <div class="spinner-border spinner-border-sm text-teal me-2" role="status"></div>
+                                        Loading dentist roster...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Dentist Modal -->
+    <div class="modal fade" id="dentistModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="dentistModalTitle"><i class="bi bi-person-plus text-teal me-2"></i>Add Dentist</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="dentistForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="dentistEditId">
+                        <div class="mb-3">
+                            <label for="dentistName" class="form-label fw-semibold small">Dentist Full Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="dentistName" placeholder="e.g. Dr. Rohan Perera" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="dentistSpec" class="form-label fw-semibold small">Clinical Specialization <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="dentistSpec" placeholder="e.g. Orthodontics & Oral Surgery" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="dentistPhone" class="form-label fw-semibold small">Contact Phone Number <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="dentistPhone" placeholder="e.g. 0772221100" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="dentistEmail" class="form-label fw-semibold small">Official Email Address <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="dentistEmail" placeholder="e.g. rohan@sunrisedental.lk" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="dentistStatusSelect" class="form-label fw-semibold small">Roster Availability Status <span class="text-danger">*</span></label>
+                            <select class="form-select" id="dentistStatusSelect" required>
+                                <option value="AVAILABLE">AVAILABLE (Accepting Bookings)</option>
+                                <option value="ON_LEAVE">ON_LEAVE (Temporarily Away)</option>
+                                <option value="INACTIVE">INACTIVE (Not Practicing)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-teal">Save Dentist</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        let dentistModal;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = checkAuth();
+            if (!user) return;
+
+            dentistModal = new bootstrap.Modal(document.getElementById('dentistModal'));
+            await loadDentists();
+        });
+
+        async function loadDentists(query = '') {
+            const tbody = document.getElementById('dentistsTableBody');
+            const endpoint = query ? `/dentists/search?query=${encodeURIComponent(query)}` : '/dentists';
+
+            try {
+                const dentists = await apiRequest(endpoint);
+                document.getElementById('dentistCountBadge').textContent = `${dentists.length} Dentists`;
+
+                if (!dentists || dentists.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No dentists found.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = dentists.map(d => {
+                    const statusClass = `badge-${d.availabilityStatus.toLowerCase().replace('_', '')}`;
+                    return `
+                        <tr>
+                            <td><strong class="text-teal">${d.dentistNumber}</strong></td>
+                            <td><div class="fw-semibold">${d.name}</div></td>
+                            <td>${d.specialization}</td>
+                            <td>${d.contactNumber}</td>
+                            <td>${d.email}</td>
+                            <td><span class="badge-status ${statusClass}">${d.availabilityStatus}</span></td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-teal" onclick='openEditDentistModal(${JSON.stringify(d)})' title="Edit Details">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-outline-secondary" onclick="toggleStatus(${d.id}, '${d.availabilityStatus}')" title="Toggle Status">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </button>
+                                    <a href="appointments.html?dentistId=${d.id}" class="btn btn-outline-primary" title="View Scheduled Appointments">
+                                        <i class="bi bi-calendar3"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">${err.message}</td></tr>`;
+            }
+        }
+
+        function searchDentists() {
+            const q = document.getElementById('dentistSearchInput').value.trim();
+            loadDentists(q);
+        }
+
+        function resetDentistSearch() {
+            document.getElementById('dentistSearchInput').value = '';
+            loadDentists();
+        }
+
+        function openNewDentistModal() {
+            document.getElementById('dentistForm').reset();
+            document.getElementById('dentistEditId').value = '';
+            document.getElementById('dentistModalTitle').innerHTML = '<i class="bi bi-person-plus text-teal me-2"></i>Add Dentist';
+            dentistModal.show();
+        }
+
+        function openEditDentistModal(d) {
+            document.getElementById('dentistEditId').value = d.id;
+            document.getElementById('dentistName').value = d.name;
+            document.getElementById('dentistSpec').value = d.specialization;
+            document.getElementById('dentistPhone').value = d.contactNumber;
+            document.getElementById('dentistEmail').value = d.email;
+            document.getElementById('dentistStatusSelect').value = d.availabilityStatus;
+            document.getElementById('dentistModalTitle').innerHTML = `<i class="bi bi-pencil text-teal me-2"></i>Edit Dentist: ${d.dentistNumber}`;
+            dentistModal.show();
+        }
+
+        document.getElementById('dentistForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const editId = document.getElementById('dentistEditId').value;
+            const payload = {
+                name: document.getElementById('dentistName').value.trim(),
+                specialization: document.getElementById('dentistSpec').value.trim(),
+                contactNumber: document.getElementById('dentistPhone').value.trim(),
+                email: document.getElementById('dentistEmail').value.trim(),
+                availabilityStatus: document.getElementById('dentistStatusSelect').value
+            };
+
+            try {
+                if (editId) {
+                    await apiRequest(`/dentists/${editId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(payload)
+                    });
+                    showNotification('Dentist profile updated.', 'success');
+                } else {
+                    const created = await apiRequest('/dentists', {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    showNotification(`Dentist ${created.name} added to roster!`, 'success');
+                }
+                dentistModal.hide();
+                await loadDentists();
+            } catch (err) {
+                alert(err.message);
+            }
+        });
+
+        async function toggleStatus(id, currentStatus) {
+            const nextStatus = currentStatus === 'AVAILABLE' ? 'ON_LEAVE' : (currentStatus === 'ON_LEAVE' ? 'INACTIVE' : 'AVAILABLE');
+            try {
+                await apiRequest(`/dentists/${id}/status?status=${nextStatus}`, { method: 'PUT' });
+                showNotification(`Dentist status updated to ${nextStatus}.`, 'success');
+                await loadDentists();
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+    </script>
+</body>
+</html>

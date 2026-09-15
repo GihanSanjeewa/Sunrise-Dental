@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patients - Sunrise Dental Clinic</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+                <div class="sidebar-brand-text">
+                    <h5>Sunrise Dental</h5>
+                    <small>Colombo Center</small>
+                </div>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-section-title">Operations</div>
+                <a href="dashboard.html" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                <a href="appointments.html" class="sidebar-link"><i class="bi bi-calendar-check"></i> Appointments</a>
+                <a href="patients.html" class="sidebar-link active"><i class="bi bi-people"></i> Patients</a>
+                <a href="billing.html" class="sidebar-link receptionist-only"><i class="bi bi-receipt"></i> Billing & Payments</a>
+
+                <div class="nav-section-title">Clinical & Catalog</div>
+                <a href="dentists.html" class="sidebar-link"><i class="bi bi-person-badge"></i> Dentists</a>
+                <a href="treatments.html" class="sidebar-link"><i class="bi bi-journal-medical"></i> Treatments</a>
+
+                <div class="nav-section-title">Management & Support</div>
+                <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-line"></i> Reports & Analytics</a>
+                <a href="help.html" class="sidebar-link"><i class="bi bi-question-circle"></i> Staff Help Guide</a>
+                <a href="users.html" class="sidebar-link admin-only"><i class="bi bi-shield-lock"></i> User Accounts</a>
+            </div>
+            <div class="sidebar-user">
+                <div class="user-badge mb-2">
+                    <div class="user-avatar" id="currentUserAvatar">U</div>
+                    <div class="user-info">
+                        <div class="user-name" id="currentUserName">Loading...</div>
+                        <div class="user-role" id="currentUserRole">STAFF</div>
+                    </div>
+                </div>
+                <button onclick="handleLogout()" class="btn btn-outline-light btn-sm w-100 py-1">
+                    <i class="bi bi-box-arrow-right me-1"></i> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <div class="page-title">
+                    <h1>Patient Management</h1>
+                    <p>Register new patients, search patient directory, and inspect treatment records</p>
+                </div>
+                <button class="btn btn-teal" data-bs-toggle="modal" data-bs-target="#patientModal" onclick="openCreatePatientModal()">
+                    <i class="bi bi-person-plus-fill me-1"></i> Register New Patient
+                </button>
+            </div>
+
+            <!-- Search and Filter Bar -->
+            <div class="card-custom mb-3">
+                <div class="card-body py-3">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                                <input type="text" class="form-control border-start-0 ps-0" id="patientSearchInput" 
+                                       placeholder="Search by Patient Number (e.g. P-000001), Full Name, or Contact Phone...">
+                            </div>
+                        </div>
+                        <div class="col-md-4 d-flex gap-2">
+                            <button class="btn btn-teal w-100" onclick="searchPatients()">
+                                <i class="bi bi-search me-1"></i> Search
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="resetSearch()">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Patients Table Card -->
+            <div class="card-custom">
+                <div class="card-header">
+                    <h5><i class="bi bi-people-fill me-2 text-teal"></i>Registered Patients Directory</h5>
+                    <span class="badge bg-secondary" id="patientCountBadge">0 Patients</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-custom align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Patient #</th>
+                                    <th>Full Name</th>
+                                    <th>Contact Phone</th>
+                                    <th>Email</th>
+                                    <th>Date of Birth</th>
+                                    <th>Gender</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="patientsTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">
+                                        <div class="spinner-border spinner-border-sm text-teal me-2" role="status"></div>
+                                        Loading patient directory...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Patient Modal (Create / Edit) -->
+    <div class="modal fade" id="patientModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="patientModalTitle"><i class="bi bi-person-plus text-teal me-2"></i>Register New Patient</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="patientForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="patientEditId">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="patientFullName" class="form-label fw-semibold small">Full Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="patientFullName" placeholder="e.g. Sunil Wickramasinghe" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="patientContact" class="form-label fw-semibold small">Contact Phone Number <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="patientContact" placeholder="e.g. 0771234567" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="patientEmail" class="form-label fw-semibold small">Email Address</label>
+                                <input type="email" class="form-control" id="patientEmail" placeholder="e.g. sunil@gmail.com">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="patientDob" class="form-label fw-semibold small">Date of Birth <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="patientDob" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="patientGender" class="form-label fw-semibold small">Gender <span class="text-danger">*</span></label>
+                                <select class="form-select" id="patientGender" required>
+                                    <option value="MALE">Male</option>
+                                    <option value="FEMALE">Female</option>
+                                    <option value="OTHER">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="patientAddress" class="form-label fw-semibold small">Residential Address <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="patientAddress" rows="2" placeholder="e.g. No. 45, Galle Road, Colombo 03" required></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-teal" id="savePatientBtn">
+                            <i class="bi bi-save me-1"></i> Save Patient Profile
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Patient History Modal -->
+    <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="historyModalTitle"><i class="bi bi-journal-medical text-teal me-2"></i>Patient Treatment History</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-custom mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Appointment #</th>
+                                    <th>Date & Time</th>
+                                    <th>Dentist</th>
+                                    <th>Treatment</th>
+                                    <th>Status</th>
+                                    <th>Clinical / Procedure Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        let patientModalInstance;
+        let historyModalInstance;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = checkAuth();
+            if (!user) return;
+
+            patientModalInstance = new bootstrap.Modal(document.getElementById('patientModal'));
+            historyModalInstance = new bootstrap.Modal(document.getElementById('historyModal'));
+
+            await loadPatients();
+        });
+
+        async function loadPatients(searchQuery = '') {
+            const tbody = document.getElementById('patientsTableBody');
+            const endpoint = searchQuery ? `/patients/search?query=${encodeURIComponent(searchQuery)}` : '/patients';
+            try {
+                const patients = await apiRequest(endpoint);
+                document.getElementById('patientCountBadge').textContent = `${patients.length} Patients`;
+
+                if (!patients || patients.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No patient records found.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = patients.map(p => `
+                    <tr>
+                        <td><strong class="text-teal">${p.patientNumber}</strong></td>
+                        <td><div class="fw-semibold">${p.fullName}</div><small class="text-muted">${p.address || ''}</small></td>
+                        <td>${p.contactNumber}</td>
+                        <td>${p.email || '<span class="text-muted">—</span>'}</td>
+                        <td>${p.dateOfBirth}</td>
+                        <td><span class="badge bg-light text-dark">${p.gender}</span></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-teal" onclick='openEditPatientModal(${JSON.stringify(p)})' title="Edit Profile">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="viewPatientHistory(${p.id}, '${p.fullName}', '${p.patientNumber}')" title="Treatment History">
+                                    <i class="bi bi-clock-history"></i>
+                                </button>
+                                <a href="appointments.html?patientId=${p.id}&patientName=${encodeURIComponent(p.fullName)}" class="btn btn-outline-primary" title="Book Appointment">
+                                    <i class="bi bi-calendar-plus"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Failed to load patients: ${err.message}</td></tr>`;
+            }
+        }
+
+        function searchPatients() {
+            const q = document.getElementById('patientSearchInput').value.trim();
+            loadPatients(q);
+        }
+
+        function resetSearch() {
+            document.getElementById('patientSearchInput').value = '';
+            loadPatients();
+        }
+
+        function openCreatePatientModal() {
+            document.getElementById('patientForm').reset();
+            document.getElementById('patientEditId').value = '';
+            document.getElementById('patientModalTitle').innerHTML = '<i class="bi bi-person-plus text-teal me-2"></i>Register New Patient';
+        }
+
+        function openEditPatientModal(patient) {
+            document.getElementById('patientEditId').value = patient.id;
+            document.getElementById('patientFullName').value = patient.fullName;
+            document.getElementById('patientContact').value = patient.contactNumber;
+            document.getElementById('patientEmail').value = patient.email || '';
+            document.getElementById('patientDob').value = patient.dateOfBirth;
+            document.getElementById('patientGender').value = patient.gender;
+            document.getElementById('patientAddress').value = patient.address;
+            document.getElementById('patientModalTitle').innerHTML = `<i class="bi bi-pencil text-teal me-2"></i>Edit Patient: ${patient.patientNumber}`;
+            patientModalInstance.show();
+        }
+
+        document.getElementById('patientForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const editId = document.getElementById('patientEditId').value;
+            const payload = {
+                fullName: document.getElementById('patientFullName').value.trim(),
+                contactNumber: document.getElementById('patientContact').value.trim(),
+                email: document.getElementById('patientEmail').value.trim() || null,
+                dateOfBirth: document.getElementById('patientDob').value,
+                gender: document.getElementById('patientGender').value,
+                address: document.getElementById('patientAddress').value.trim()
+            };
+
+            const saveBtn = document.getElementById('savePatientBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+
+            try {
+                if (editId) {
+                    await apiRequest(`/patients/${editId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(payload)
+                    });
+                    showNotification('Patient details updated successfully.', 'success');
+                } else {
+                    const created = await apiRequest('/patients', {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    showNotification(`Patient ${created.fullName} registered with ID ${created.patientNumber}!`, 'success');
+                }
+                patientModalInstance.hide();
+                await loadPatients();
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="bi bi-save me-1"></i> Save Patient Profile';
+            }
+        });
+
+        async function viewPatientHistory(patientId, fullName, patientNumber) {
+            document.getElementById('historyModalTitle').innerHTML = `<i class="bi bi-journal-medical text-teal me-2"></i>Treatment History: ${fullName} (${patientNumber})`;
+            const historyBody = document.getElementById('historyTableBody');
+            historyBody.innerHTML = `<tr><td colspan="6" class="text-center py-3 text-muted">Loading treatment records...</td></tr>`;
+            historyModalInstance.show();
+
+            try {
+                const history = await apiRequest(`/patients/${patientId}/appointments`);
+                if (!history || history.length === 0) {
+                    historyBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No prior appointments or treatment notes found for this patient.</td></tr>`;
+                    return;
+                }
+
+                historyBody.innerHTML = history.map(h => `
+                    <tr>
+                        <td><strong>${h.appointmentNumber}</strong></td>
+                        <td>${h.appointmentDate} at ${h.appointmentTime}</td>
+                        <td>${h.dentistName}</td>
+                        <td>${h.treatmentName}</td>
+                        <td><span class="badge-status badge-${h.status.toLowerCase()}">${h.status}</span></td>
+                        <td>${h.notes || '<span class="text-muted">No clinical notes recorded</span>'}</td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                historyBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">${err.message}</td></tr>`;
+            }
+        }
+    </script>
+</body>
+</html>

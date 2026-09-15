@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointments - Sunrise Dental Clinic</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+                <div class="sidebar-brand-text">
+                    <h5>Sunrise Dental</h5>
+                    <small>Colombo Center</small>
+                </div>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-section-title">Operations</div>
+                <a href="dashboard.html" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                <a href="appointments.html" class="sidebar-link active"><i class="bi bi-calendar-check"></i> Appointments</a>
+                <a href="patients.html" class="sidebar-link"><i class="bi bi-people"></i> Patients</a>
+                <a href="billing.html" class="sidebar-link receptionist-only"><i class="bi bi-receipt"></i> Billing & Payments</a>
+
+                <div class="nav-section-title">Clinical & Catalog</div>
+                <a href="dentists.html" class="sidebar-link"><i class="bi bi-person-badge"></i> Dentists</a>
+                <a href="treatments.html" class="sidebar-link"><i class="bi bi-journal-medical"></i> Treatments</a>
+
+                <div class="nav-section-title">Management & Support</div>
+                <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-line"></i> Reports & Analytics</a>
+                <a href="help.html" class="sidebar-link"><i class="bi bi-question-circle"></i> Staff Help Guide</a>
+                <a href="users.html" class="sidebar-link admin-only"><i class="bi bi-shield-lock"></i> User Accounts</a>
+            </div>
+            <div class="sidebar-user">
+                <div class="user-badge mb-2">
+                    <div class="user-avatar" id="currentUserAvatar">U</div>
+                    <div class="user-info">
+                        <div class="user-name" id="currentUserName">Loading...</div>
+                        <div class="user-role" id="currentUserRole">STAFF</div>
+                    </div>
+                </div>
+                <button onclick="handleLogout()" class="btn btn-outline-light btn-sm w-100 py-1">
+                    <i class="bi bi-box-arrow-right me-1"></i> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <div class="page-title">
+                    <h1>Appointment Management</h1>
+                    <p>Schedule patient visits, enforce double-booking conflict rules, and search appointment records</p>
+                </div>
+                <button class="btn btn-teal" onclick="openNewAppointmentModal()">
+                    <i class="bi bi-calendar-plus-fill me-1"></i> Book New Appointment
+                </button>
+            </div>
+
+            <!-- Primary Search by Appointment Number (University Section 12 Requirement) -->
+            <div class="card-custom mb-4 border-teal" style="border-width: 2px;">
+                <div class="card-body py-3">
+                    <div class="row align-items-center g-3">
+                        <div class="col-md-3">
+                            <label class="fw-bold small text-dark"><i class="bi bi-search me-1 text-teal"></i> Direct Appointment Lookup:</label>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="directAptSearchInput" 
+                                       placeholder="Enter Appointment Number (e.g. APT-2026-000001)">
+                                <button class="btn btn-teal" onclick="searchByAppointmentNumber()">
+                                    <i class="bi bi-arrow-right-circle me-1"></i> Search Number
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="toggleAdvancedFilters()">
+                                <i class="bi bi-sliders me-1"></i> Multi-Filter Search
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Single Appointment Result Detail Card (University Section 13 Requirement) -->
+                    <div id="singleAppointmentResult" class="d-none mt-3 p-3 bg-light rounded border">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="m-0 text-dark fw-bold" id="resAptNumber">APT-2026-XXXXXX</h5>
+                            <span class="badge-status" id="resStatusBadge">STATUS</span>
+                        </div>
+                        <div class="row g-2 small">
+                            <div class="col-md-4"><strong>Patient Number:</strong> <span id="resPatientNum"></span></div>
+                            <div class="col-md-4"><strong>Patient Name:</strong> <span id="resPatientName"></span></div>
+                            <div class="col-md-4"><strong>Contact Phone:</strong> <span id="resContact"></span></div>
+                            <div class="col-md-4"><strong>Address:</strong> <span id="resAddress"></span></div>
+                            <div class="col-md-4"><strong>Dentist:</strong> <span id="resDentist"></span></div>
+                            <div class="col-md-4"><strong>Treatment:</strong> <span id="resTreatment"></span></div>
+                            <div class="col-md-4"><strong>Appointment Date:</strong> <span id="resDate"></span></div>
+                            <div class="col-md-4"><strong>Appointment Time:</strong> <span id="resTime"></span></div>
+                            <div class="col-md-4"><strong>Clinical Notes:</strong> <span id="resNotes"></span></div>
+                        </div>
+                        <div class="mt-3 pt-2 border-top d-flex gap-2 justify-content-end" id="resActionButtons">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Multi-Filter Options (Collapsible) -->
+            <div id="advancedFilterSection" class="card-custom mb-3 d-none">
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold">Patient Name or #</label>
+                            <input type="text" class="form-control form-control-sm" id="filterPatient" placeholder="Name or P-XXXXXX">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold">Dentist</label>
+                            <select class="form-select form-select-sm" id="filterDentist">
+                                <option value="">All Dentists</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-semibold">Date</label>
+                            <input type="date" class="form-control form-control-sm" id="filterDate">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-semibold">Status</label>
+                            <select class="form-select form-select-sm" id="filterStatus">
+                                <option value="">All Statuses</option>
+                                <option value="BOOKED">BOOKED</option>
+                                <option value="CONFIRMED">CONFIRMED</option>
+                                <option value="COMPLETED">COMPLETED</option>
+                                <option value="CANCELLED">CANCELLED</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end gap-1">
+                            <button class="btn btn-sm btn-teal w-100" onclick="applyAdvancedFilters()">Filter</button>
+                            <button class="btn btn-sm btn-light" onclick="clearFilters()"><i class="bi bi-x-lg"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Appointments Master Table -->
+            <div class="card-custom">
+                <div class="card-header">
+                    <h5><i class="bi bi-calendar3 me-2 text-teal"></i>Scheduled Appointments Roster</h5>
+                    <span class="badge bg-secondary" id="aptCountBadge">0 Appointments</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-custom align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Appointment #</th>
+                                    <th>Patient</th>
+                                    <th>Dentist</th>
+                                    <th>Treatment</th>
+                                    <th>Date & Time</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appointmentsTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">
+                                        <div class="spinner-border spinner-border-sm text-teal me-2" role="status"></div>
+                                        Loading appointments...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Book / Reschedule Appointment Modal -->
+    <div class="modal fade" id="appointmentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="aptModalTitle"><i class="bi bi-calendar-plus text-teal me-2"></i>Book New Dental Appointment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="appointmentForm">
+                    <div class="modal-body">
+                        <div id="bookingConflictAlert" class="alert alert-danger d-none py-2 mb-3">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <span id="bookingConflictMsg"></span>
+                        </div>
+
+                        <input type="hidden" id="aptEditId">
+
+                        <div class="row g-3">
+                            <!-- Patient Selection -->
+                            <div class="col-md-6">
+                                <label for="aptPatientSelect" class="form-label fw-semibold small">Select Patient <span class="text-danger">*</span></label>
+                                <select class="form-select" id="aptPatientSelect" required>
+                                    <option value="">-- Choose Registered Patient --</option>
+                                </select>
+                            </div>
+
+                            <!-- Dentist Selection -->
+                            <div class="col-md-6">
+                                <label for="aptDentistSelect" class="form-label fw-semibold small">Select Dentist <span class="text-danger">*</span></label>
+                                <select class="form-select" id="aptDentistSelect" required>
+                                    <option value="">-- Choose Available Dentist --</option>
+                                </select>
+                            </div>
+
+                            <!-- Treatment Selection -->
+                            <div class="col-md-12">
+                                <label for="aptTreatmentSelect" class="form-label fw-semibold small">Treatment Procedure <span class="text-danger">*</span></label>
+                                <select class="form-select" id="aptTreatmentSelect" required>
+                                    <option value="">-- Choose Dental Treatment --</option>
+                                </select>
+                                <small class="text-muted" id="treatmentPricingHint"></small>
+                            </div>
+
+                            <!-- Date & Time Slot -->
+                            <div class="col-md-6">
+                                <label for="aptDateInput" class="form-label fw-semibold small">Appointment Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="aptDateInput" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="aptTimeInput" class="form-label fw-semibold small">Appointment Time Slot <span class="text-danger">*</span></label>
+                                <select class="form-select" id="aptTimeInput" required>
+                                    <option value="09:00:00">09:00 AM</option>
+                                    <option value="09:30:00">09:30 AM</option>
+                                    <option value="10:00:00">10:00 AM</option>
+                                    <option value="10:30:00">10:30 AM</option>
+                                    <option value="11:00:00">11:00 AM</option>
+                                    <option value="11:30:00">11:30 AM</option>
+                                    <option value="14:00:00">02:00 PM</option>
+                                    <option value="14:30:00">02:30 PM</option>
+                                    <option value="15:00:00">03:00 PM</option>
+                                    <option value="15:30:00">03:30 PM</option>
+                                    <option value="16:00:00">04:00 PM</option>
+                                </select>
+                            </div>
+
+                            <!-- Notes -->
+                            <div class="col-12">
+                                <label for="aptNotes" class="form-label fw-semibold small">Symptoms / Clinical Notes</label>
+                                <textarea class="form-control" id="aptNotes" rows="2" placeholder="e.g. Sensitivity in premolar, routine checkup..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-teal" id="saveAptBtn">
+                            <i class="bi bi-calendar-check me-1"></i> Confirm Booking
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Update Modal -->
+    <div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-check2-circle text-teal me-2"></i>Update Appointment Status</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="statusForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="statusAptId">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Appointment Status</label>
+                            <select class="form-select" id="newStatusSelect" required>
+                                <option value="CONFIRMED">CONFIRMED (Patient Confirmed Arrival)</option>
+                                <option value="COMPLETED">COMPLETED (Treatment Concluded)</option>
+                                <option value="NO_SHOW">NO_SHOW (Patient Did Not Arrive)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Doctor / Clinical Procedure Notes</label>
+                            <textarea class="form-control" id="statusNotes" rows="3" placeholder="Enter findings, prescriptions, or post-op instructions..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-teal">Save Status & Notes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        let aptModal;
+        let statusModal;
+        let allPatients = [];
+        let allDentists = [];
+        let allTreatments = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = checkAuth();
+            if (!user) return;
+
+            aptModal = new bootstrap.Modal(document.getElementById('appointmentModal'));
+            statusModal = new bootstrap.Modal(document.getElementById('statusModal'));
+
+            // Default appointment date to today or tomorrow
+            document.getElementById('aptDateInput').min = new Date().toISOString().split('T')[0];
+            document.getElementById('aptDateInput').value = new Date().toISOString().split('T')[0];
+
+            await loadPrerequisites();
+            await loadAppointments();
+
+            // Check if URL contains search param
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchParam = urlParams.get('search');
+            if (searchParam) {
+                document.getElementById('directAptSearchInput').value = searchParam;
+                searchByAppointmentNumber();
+            }
+        });
+
+        async function loadPrerequisites() {
+            try {
+                const [patients, dentists, treatments] = await Promise.all([
+                    apiRequest('/patients'),
+                    apiRequest('/dentists/available'),
+                    apiRequest('/treatments/active')
+                ]);
+
+                allPatients = patients;
+                allDentists = dentists;
+                allTreatments = treatments;
+
+                // Populate Dropdowns
+                const patientSelect = document.getElementById('aptPatientSelect');
+                patientSelect.innerHTML = '<option value="">-- Choose Registered Patient --</option>' + 
+                    patients.map(p => `<option value="${p.id}">${p.patientNumber} - ${p.fullName} (${p.contactNumber})</option>`).join('');
+
+                const dentistSelect = document.getElementById('aptDentistSelect');
+                const filterDentistSelect = document.getElementById('filterDentist');
+                const dentistOptions = dentists.map(d => `<option value="${d.id}">${d.name} (${d.specialization})</option>`).join('');
+                dentistSelect.innerHTML = '<option value="">-- Choose Available Dentist --</option>' + dentistOptions;
+                filterDentistSelect.innerHTML = '<option value="">All Dentists</option>' + dentistOptions;
+
+                const treatmentSelect = document.getElementById('aptTreatmentSelect');
+                treatmentSelect.innerHTML = '<option value="">-- Choose Dental Treatment --</option>' + 
+                    treatments.map(t => `<option value="${t.id}" data-cost="${t.treatmentCost}" data-fee="${t.consultationFee}">
+                        ${t.treatmentCode} - ${t.treatmentName} [Cost: Rs. ${t.treatmentCost} | Fee: Rs. ${t.consultationFee}]
+                    </option>`).join('');
+
+                treatmentSelect.addEventListener('change', function() {
+                    const selected = this.options[this.selectedIndex];
+                    const hint = document.getElementById('treatmentPricingHint');
+                    if (selected.value) {
+                        hint.textContent = `Standard Procedure Cost: Rs. ${selected.dataset.cost} | Consultation Fee: Rs. ${selected.dataset.fee}`;
+                    } else {
+                        hint.textContent = '';
+                    }
+                });
+
+            } catch (err) {
+                console.error('Failed to load prerequisites:', err);
+            }
+        }
+
+        async function loadAppointments(filterParams = '') {
+            const tbody = document.getElementById('appointmentsTableBody');
+            const endpoint = filterParams ? `/appointments/search?${filterParams}` : '/appointments';
+
+            try {
+                const appointments = await apiRequest(endpoint);
+                document.getElementById('aptCountBadge').textContent = `${appointments.length} Appointments`;
+
+                if (!appointments || appointments.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No appointments found matching criteria.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = appointments.map(apt => {
+                    const statusClass = `badge-${apt.status.toLowerCase()}`;
+                    return `
+                        <tr>
+                            <td><strong class="text-teal">${apt.appointmentNumber}</strong></td>
+                            <td>
+                                <div class="fw-semibold">${apt.patientName}</div>
+                                <small class="text-muted">${apt.patientNumber} | ${apt.patientContactNumber}</small>
+                            </td>
+                            <td>
+                                <div>${apt.dentistName}</div>
+                                <small class="text-muted">${apt.dentistSpecialization || ''}</small>
+                            </td>
+                            <td>${apt.treatmentName}</td>
+                            <td>
+                                <div><i class="bi bi-calendar3 me-1 text-muted"></i>${apt.appointmentDate}</div>
+                                <small class="text-muted"><i class="bi bi-clock me-1"></i>${apt.appointmentTime}</small>
+                            </td>
+                            <td><span class="badge-status ${statusClass}">${apt.status}</span></td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-teal" onclick='viewAppointmentDetails("${apt.appointmentNumber}")' title="View Full Details">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    ${apt.status !== 'CANCELLED' && apt.status !== 'COMPLETED' ? `
+                                        <button class="btn btn-outline-primary" onclick="openStatusModal(${apt.id}, '${apt.status}')" title="Update Status">
+                                            <i class="bi bi-check2-circle"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger" onclick="cancelAppointment(${apt.id}, '${apt.appointmentNumber}')" title="Cancel Appointment">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    ` : ''}
+                                    ${apt.status === 'COMPLETED' ? `
+                                        <a href="billing.html?aptId=${apt.id}" class="btn btn-outline-success" title="Generate / View Bill">
+                                            <i class="bi bi-receipt"></i>
+                                        </a>
+                                    ` : ''}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">${err.message}</td></tr>`;
+            }
+        }
+
+        // Section 12 & 13: Search by Appointment Number Requirement
+        async function searchByAppointmentNumber() {
+            const aptNum = document.getElementById('directAptSearchInput').value.trim();
+            const resultBox = document.getElementById('singleAppointmentResult');
+
+            if (!aptNum) {
+                alert('Please enter an appointment number to search.');
+                return;
+            }
+
+            try {
+                const apt = await apiRequest(`/appointments/number/${encodeURIComponent(aptNum)}`);
+                renderSingleResultCard(apt);
+            } catch (err) {
+                resultBox.classList.remove('d-none');
+                resultBox.innerHTML = `
+                    <div class="alert alert-warning m-0">
+                        <i class="bi bi-exclamation-triangle me-2"></i>No appointment found with the provided appointment number.
+                    </div>
+                `;
+            }
+        }
+
+        function renderSingleResultCard(apt) {
+            const resultBox = document.getElementById('singleAppointmentResult');
+            resultBox.classList.remove('d-none');
+            resultBox.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="m-0 text-teal fw-bold">${apt.appointmentNumber}</h5>
+                    <span class="badge-status badge-${apt.status.toLowerCase()}">${apt.status}</span>
+                </div>
+                <div class="row g-2 small">
+                    <div class="col-md-4"><strong>Patient Number:</strong> ${apt.patientNumber}</div>
+                    <div class="col-md-4"><strong>Patient Name:</strong> ${apt.patientName}</div>
+                    <div class="col-md-4"><strong>Contact Phone:</strong> ${apt.patientContactNumber}</div>
+                    <div class="col-md-4"><strong>Address:</strong> ${apt.patientAddress || '—'}</div>
+                    <div class="col-md-4"><strong>Dentist:</strong> ${apt.dentistName} (${apt.dentistSpecialization})</div>
+                    <div class="col-md-4"><strong>Treatment:</strong> ${apt.treatmentName}</div>
+                    <div class="col-md-4"><strong>Appointment Date:</strong> ${apt.appointmentDate}</div>
+                    <div class="col-md-4"><strong>Appointment Time:</strong> ${apt.appointmentTime}</div>
+                    <div class="col-md-4"><strong>Clinical Notes:</strong> ${apt.notes || '—'}</div>
+                </div>
+                <div class="mt-3 pt-2 border-top d-flex gap-2 justify-content-end">
+                    ${apt.status !== 'CANCELLED' && apt.status !== 'COMPLETED' ? `
+                        <button class="btn btn-sm btn-primary" onclick="openStatusModal(${apt.id}, '${apt.status}')">Update Status</button>
+                        <button class="btn btn-sm btn-danger" onclick="cancelAppointment(${apt.id}, '${apt.appointmentNumber}')">Cancel Slot</button>
+                    ` : ''}
+                    <a href="billing.html?aptId=${apt.id}" class="btn btn-sm btn-teal"><i class="bi bi-receipt me-1"></i>Invoicing</a>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('singleAppointmentResult').classList.add('d-none')">Dismiss</button>
+                </div>
+            `;
+        }
+
+        function viewAppointmentDetails(aptNumber) {
+            document.getElementById('directAptSearchInput').value = aptNumber;
+            searchByAppointmentNumber();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleAdvancedFilters() {
+            const section = document.getElementById('advancedFilterSection');
+            section.classList.toggle('d-none');
+        }
+
+        function applyAdvancedFilters() {
+            const params = new URLSearchParams();
+            const pat = document.getElementById('filterPatient').value.trim();
+            const den = document.getElementById('filterDentist').value;
+            const date = document.getElementById('filterDate').value;
+            const status = document.getElementById('filterStatus').value;
+
+            if (pat) params.append('patientName', pat);
+            if (den) params.append('dentistId', den);
+            if (date) params.append('date', date);
+            if (status) params.append('status', status);
+
+            loadAppointments(params.toString());
+        }
+
+        function clearFilters() {
+            document.getElementById('filterPatient').value = '';
+            document.getElementById('filterDentist').value = '';
+            document.getElementById('filterDate').value = '';
+            document.getElementById('filterStatus').value = '';
+            loadAppointments();
+        }
+
+        function openNewAppointmentModal() {
+            document.getElementById('appointmentForm').reset();
+            document.getElementById('aptEditId').value = '';
+            document.getElementById('bookingConflictAlert').classList.add('d-none');
+            document.getElementById('aptDateInput').value = new Date().toISOString().split('T')[0];
+            aptModal.show();
+        }
+
+        // Handle Appointment Booking with Double-Booking Prevention Error Display (Section 11)
+        document.getElementById('appointmentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const alertBox = document.getElementById('bookingConflictAlert');
+            const alertMsg = document.getElementById('bookingConflictMsg');
+            const saveBtn = document.getElementById('saveAptBtn');
+
+            alertBox.classList.add('d-none');
+
+            const payload = {
+                patientId: Number(document.getElementById('aptPatientSelect').value),
+                dentistId: Number(document.getElementById('aptDentistSelect').value),
+                treatmentId: Number(document.getElementById('aptTreatmentSelect').value),
+                appointmentDate: document.getElementById('aptDateInput').value,
+                appointmentTime: document.getElementById('aptTimeInput').value,
+                notes: document.getElementById('aptNotes').value.trim() || null
+            };
+
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Verifying Slot...';
+
+            try {
+                const response = await apiRequest('/appointments', {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+
+                showNotification(`Appointment ${response.appointmentNumber} successfully registered!`, 'success');
+                aptModal.hide();
+                await loadAppointments();
+                viewAppointmentDetails(response.appointmentNumber);
+            } catch (err) {
+                // Section 11 Requirement: "Selected dentist is already booked for this time."
+                alertMsg.textContent = err.message;
+                alertBox.classList.remove('d-none');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="bi bi-calendar-check me-1"></i> Confirm Booking';
+            }
+        });
+
+        // Cancel Appointment (Releases slot)
+        async function cancelAppointment(id, aptNumber) {
+            if (!confirm(`Are you sure you want to cancel appointment ${aptNumber}?\nThis will release the dentist's time slot for other patients.`)) {
+                return;
+            }
+
+            try {
+                await apiRequest(`/appointments/${id}`, { method: 'DELETE' });
+                showNotification(`Appointment ${aptNumber} cancelled successfully. Slot released.`, 'success');
+                await loadAppointments();
+                document.getElementById('singleAppointmentResult').classList.add('d-none');
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        // Status Modal
+        function openStatusModal(id, currentStatus) {
+            document.getElementById('statusAptId').value = id;
+            document.getElementById('newStatusSelect').value = currentStatus === 'BOOKED' ? 'CONFIRMED' : currentStatus;
+            document.getElementById('statusNotes').value = '';
+            statusModal.show();
+        }
+
+        document.getElementById('statusForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('statusAptId').value;
+            const payload = {
+                status: document.getElementById('newStatusSelect').value,
+                notes: document.getElementById('statusNotes').value.trim() || null
+            };
+
+            try {
+                await apiRequest(`/appointments/${id}/status`, {
+                    method: 'PATCH',
+                    body: JSON.stringify(payload)
+                });
+                showNotification('Appointment status and clinical notes updated.', 'success');
+                statusModal.hide();
+                await loadAppointments();
+            } catch (err) {
+                alert(err.message);
+            }
+        });
+    </script>
+</body>
+</html>

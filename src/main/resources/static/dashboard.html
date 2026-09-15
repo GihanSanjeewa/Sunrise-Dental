@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sunrise Dental Clinic</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-icon">
+                    <i class="bi bi-heart-pulse-fill"></i>
+                </div>
+                <div class="sidebar-brand-text">
+                    <h5>Sunrise Dental</h5>
+                    <small>Colombo Center</small>
+                </div>
+            </div>
+
+            <div class="sidebar-nav">
+                <div class="nav-section-title">Operations</div>
+                <a href="dashboard.html" class="sidebar-link active">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a href="appointments.html" class="sidebar-link">
+                    <i class="bi bi-calendar-check"></i> Appointments
+                </a>
+                <a href="patients.html" class="sidebar-link">
+                    <i class="bi bi-people"></i> Patients
+                </a>
+                <a href="billing.html" class="sidebar-link receptionist-only">
+                    <i class="bi bi-receipt"></i> Billing & Payments
+                </a>
+
+                <div class="nav-section-title">Clinical & Catalog</div>
+                <a href="dentists.html" class="sidebar-link">
+                    <i class="bi bi-person-badge"></i> Dentists
+                </a>
+                <a href="treatments.html" class="sidebar-link">
+                    <i class="bi bi-journal-medical"></i> Treatments
+                </a>
+
+                <div class="nav-section-title">Management & Support</div>
+                <a href="reports.html" class="sidebar-link">
+                    <i class="bi bi-bar-chart-line"></i> Reports & Analytics
+                </a>
+                <a href="help.html" class="sidebar-link">
+                    <i class="bi bi-question-circle"></i> Staff Help Guide
+                </a>
+                <a href="users.html" class="sidebar-link admin-only">
+                    <i class="bi bi-shield-lock"></i> User Accounts
+                </a>
+            </div>
+
+            <div class="sidebar-user">
+                <div class="user-badge mb-2">
+                    <div class="user-avatar" id="currentUserAvatar">U</div>
+                    <div class="user-info">
+                        <div class="user-name" id="currentUserName">Loading...</div>
+                        <div class="user-role" id="currentUserRole">STAFF</div>
+                    </div>
+                </div>
+                <button onclick="handleLogout()" class="btn btn-outline-light btn-sm w-100 py-1">
+                    <i class="bi bi-box-arrow-right me-1"></i> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <div class="page-title">
+                    <h1>Executive Dashboard</h1>
+                    <p>Real-time clinic metrics, appointment rosters, and revenue summary</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="appointments.html" class="btn btn-teal">
+                        <i class="bi bi-plus-circle me-1"></i> New Appointment
+                    </a>
+                    <a href="patients.html" class="btn btn-outline-secondary">
+                        <i class="bi bi-person-plus me-1"></i> Register Patient
+                    </a>
+                </div>
+            </div>
+
+            <!-- KPI Cards Row 1: Appointments & Patients -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-icon icon-teal">
+                            <i class="bi bi-calendar-event"></i>
+                        </div>
+                        <div class="metric-details">
+                            <div class="metric-value" id="metricTodayApts">0</div>
+                            <div class="metric-label">Today's Appointments</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-icon icon-amber">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div class="metric-details">
+                            <div class="metric-value" id="metricPendingApts">0</div>
+                            <div class="metric-label">Pending / Booked</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-icon icon-green">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="metric-details">
+                            <div class="metric-value" id="metricCompletedApts">0</div>
+                            <div class="metric-label">Completed Visits</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-icon icon-red">
+                            <i class="bi bi-x-circle"></i>
+                        </div>
+                        <div class="metric-details">
+                            <div class="metric-value" id="metricCancelledApts">0</div>
+                            <div class="metric-label">Cancelled Slots</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Cards Row 2: Resources & Revenue -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-icon icon-blue">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <div class="metric-details">
+                            <div class="metric-value" id="metricTotalPatients">0</div>
+                            <div class="metric-label">Registered Patients</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-icon icon-purple">
+                            <i class="bi bi-person-badge-fill"></i>
+                        </div>
+                        <div class="metric-details">
+                            <div class="metric-value" id="metricAvailableDentists">0</div>
+                            <div class="metric-label">Active Dentists</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-icon icon-green">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                        <div class="metric-details">
+                            <div class="metric-value" id="metricTodayRevenue">Rs. 0</div>
+                            <div class="metric-label">Today's Revenue</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-icon icon-amber">
+                            <i class="bi bi-credit-card"></i>
+                        </div>
+                        <div class="metric-details">
+                            <div class="metric-value" id="metricPendingRevenue">Rs. 0</div>
+                            <div class="metric-label">Pending Receivables</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Today's Appointment Roster -->
+            <div class="card-custom">
+                <div class="card-header">
+                    <h5><i class="bi bi-clock-history me-2 text-teal"></i>Today's Scheduled Appointments</h5>
+                    <span class="badge bg-light text-dark fw-normal" id="currentDateBadge">Date</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-custom align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Appointment #</th>
+                                    <th>Patient</th>
+                                    <th>Dentist</th>
+                                    <th>Treatment</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="todayAppointmentsTable">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">
+                                        <div class="spinner-border spinner-border-sm text-teal me-2" role="status"></div>
+                                        Loading today's clinical roster...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = checkAuth();
+            if (!user) return;
+
+            document.getElementById('currentDateBadge').textContent = new Date().toLocaleDateString('en-US', {
+                weekday: 'long', year: 'numeric', month: 'short', day: 'numeric'
+            });
+
+            await loadDashboardMetrics();
+            await loadTodayAppointments();
+        });
+
+        async function loadDashboardMetrics() {
+            try {
+                const metrics = await apiRequest('/reports/dashboard');
+                document.getElementById('metricTodayApts').textContent = metrics.todayAppointments;
+                document.getElementById('metricPendingApts').textContent = metrics.pendingAppointments;
+                document.getElementById('metricCompletedApts').textContent = metrics.completedAppointments;
+                document.getElementById('metricCancelledApts').textContent = metrics.cancelledAppointments;
+                document.getElementById('metricTotalPatients').textContent = metrics.totalPatients;
+                document.getElementById('metricAvailableDentists').textContent = metrics.availableDentists;
+                document.getElementById('metricTodayRevenue').textContent = 'Rs. ' + Number(metrics.todayRevenue).toLocaleString('en-LK', { minimumFractionDigits: 2 });
+                document.getElementById('metricPendingRevenue').textContent = 'Rs. ' + Number(metrics.pendingRevenue).toLocaleString('en-LK', { minimumFractionDigits: 2 });
+            } catch (err) {
+                console.error('Failed to load dashboard metrics:', err);
+            }
+        }
+
+        async function loadTodayAppointments() {
+            const tableBody = document.getElementById('todayAppointmentsTable');
+            try {
+                const appointments = await apiRequest('/appointments/today');
+                if (!appointments || appointments.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No appointments scheduled for today.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = appointments.map(apt => {
+                    const statusClass = `badge-${apt.status.toLowerCase()}`;
+                    return `
+                        <tr>
+                            <td><strong class="text-teal">${apt.appointmentNumber}</strong></td>
+                            <td>
+                                <div class="fw-semibold">${apt.patientName}</div>
+                                <small class="text-muted">${apt.patientNumber}</small>
+                            </td>
+                            <td>${apt.dentistName}</td>
+                            <td>${apt.treatmentName}</td>
+                            <td><i class="bi bi-clock me-1 text-muted"></i>${apt.appointmentTime}</td>
+                            <td><span class="badge-status ${statusClass}">${apt.status}</span></td>
+                            <td>
+                                <a href="appointments.html?search=${apt.appointmentNumber}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-eye me-1"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Failed to load roster: ${err.message}</td></tr>`;
+            }
+        }
+    </script>
+</body>
+</html>
