@@ -17,10 +17,10 @@ USE sunrise_dental_db;
 -- BCrypt hashes generated with cost factor 10
 -- -----------------------------------------------------------------------------
 INSERT INTO users (username, password_hash, full_name, email, role, is_active) VALUES
-('admin', '$2a$10$wN1H2Kz50Oa1f8vB/ZlDteFk4pZ6Uu8v9s3D8kG0H7b6X9n8Z1k2a', 'System Administrator', 'admin@sunrisedental.lk', 'ADMIN', TRUE),
-('receptionist', '$2a$10$wN1H2Kz50Oa1f8vB/ZlDteFk4pZ6Uu8v9s3D8kG0H7b6X9n8Z1k2a', 'Kamani Jayawardena', 'kamani@sunrisedental.lk', 'RECEPTIONIST', TRUE),
-('dr.perera', '$2a$10$wN1H2Kz50Oa1f8vB/ZlDteFk4pZ6Uu8v9s3D8kG0H7b6X9n8Z1k2a', 'Dr. Rohan Perera', 'rohan.perera@sunrisedental.lk', 'DENTIST', TRUE),
-('dr.silva', '$2a$10$wN1H2Kz50Oa1f8vB/ZlDteFk4pZ6Uu8v9s3D8kG0H7b6X9n8Z1k2a', 'Dr. Anoma Silva', 'anoma.silva@sunrisedental.lk', 'DENTIST', TRUE);
+('admin', '$2a$10$uBZJa/Wm5SVPozp1qkn8SebomsF2PdO92iEvhqV7QWP3kLZEL0tUK', 'System Administrator', 'admin@sunrisedental.lk', 'ADMIN', TRUE),
+('receptionist', '$2a$10$H8WFxB8UzbuDy7e6hQbb3erjSCec6jxLUHvt6af7CEqi35hw/mf/e', 'Kamani Jayawardena', 'kamani@sunrisedental.lk', 'RECEPTIONIST', TRUE),
+('dr.perera', '$2a$10$5fpiUuUfbuz.xnZ16.qpj.iBeBCq4owEhlKTBZUmPpV6tMmoQUBuS', 'Dr. Rohan Perera', 'rohan.perera@sunrisedental.lk', 'DENTIST', TRUE),
+('dr.silva', '$2a$10$5fpiUuUfbuz.xnZ16.qpj.iBeBCq4owEhlKTBZUmPpV6tMmoQUBuS', 'Dr. Anoma Silva', 'anoma.silva@sunrisedental.lk', 'DENTIST', TRUE);
 
 -- -----------------------------------------------------------------------------
 -- Seed: patients

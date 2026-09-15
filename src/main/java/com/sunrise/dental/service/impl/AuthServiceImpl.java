@@ -33,7 +33,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
             throw new ValidationException("Please enter your username.");
