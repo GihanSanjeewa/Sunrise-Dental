@@ -1,0 +1,75 @@
+@startuml
+title Sequence Diagram: Appointment Booking & Conflict Detection (Double-Booking Prevention)
+autonumber
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
+
+actor "Receptionist" as Rec
+boundary "Appointment Booking UI" as UI
+control "AppointmentController" as AptCtrl
+participant "AppointmentService" as AptSvc
+database "PatientRepository" as PatRepo
+database "DentistRepository" as DenRepo
+database "TreatmentRepository" as TrtRepo
+database "AppointmentRepository" as AptRepo
+participant "AuditService" as Audit
+
+Rec -> UI: Selects Patient, Dentist, Treatment, Date, Time Slot
+UI -> UI: Validates inputs (Non-empty, future date/time)
+
+UI -> AptCtrl: POST /api/appointments (AppointmentRequest)
+activate AptCtrl
+
+AptCtrl -> AptSvc: createAppointment(request)
+activate AptSvc
+
+' 1. Validate Patient
+AptSvc -> PatRepo: findById(request.patientId)
+alt Patient does not exist
+    PatRepo --> AptSvc: Optional.empty()
+    AptSvc --> AptCtrl: throw ResourceNotFoundException("Patient not found.")
+    AptCtrl --> UI: 404 Not Found (ErrorResponse)
+    UI --> Rec: "Patient not found. Please register patient first."
+end
+
+' 2. Validate Dentist
+AptSvc -> DenRepo: findById(request.dentistId)
+alt Dentist does not exist or Inactive
+    DenRepo --> AptSvc: Optional.empty() / Status == INACTIVE
+    AptSvc --> AptCtrl: throw ValidationException("Selected dentist is not active.")
+    AptCtrl --> UI: 400 Bad Request (ErrorResponse)
+    UI --> Rec: "Selected dentist is not currently available."
+end
+
+' 3. Atomic Double Booking Conflict Check
+AptSvc -> AptRepo: existsByDentistAndDateAndTimeAndStatusNot(dentistId, date, time, CANCELLED)
+activate AptRepo
+alt Overlapping Active Appointment Exists (Conflict Detected)
+    AptRepo --> AptSvc: true
+    AptSvc --> AptCtrl: throw AppointmentConflictException("Selected dentist is already booked for this time.")
+    AptCtrl --> UI: 409 Conflict (ErrorResponse)
+    UI --> Rec: Display Warning: "Selected dentist is already booked for this time."
+else Slot is Available
+    AptRepo --> AptSvc: false
+    deactivate AptRepo
+
+    ' 4. Generate Unique Sequential Appointment Number
+    AptSvc -> AptSvc: generateNextAppointmentNumber() -> "APT-2026-000006"
+    
+    ' 5. Persist Appointment
+    AptSvc -> AptRepo: save(newAppointment)
+    activate AptRepo
+    AptRepo --> AptSvc: persistedAppointment
+    deactivate AptRepo
+
+    ' 6. Audit Trail Logging
+    AptSvc -> Audit: log("receptionist", "CREATE", "APPOINTMENT", "APT-2026-000006")
+
+    AptSvc --> AptCtrl: AppointmentResponse DTO
+    AptCtrl --> UI: 201 Created (AppointmentResponse JSON)
+    UI --> Rec: Display Success: "Appointment APT-2026-000006 booked successfully!"
+end
+
+deactivate AptSvc
+deactivate AptCtrl
+@enduml

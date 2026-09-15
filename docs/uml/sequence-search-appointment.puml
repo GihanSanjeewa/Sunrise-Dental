@@ -1,0 +1,40 @@
+@startuml
+title Sequence Diagram: Search Appointment Flow
+autonumber
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
+
+actor "Staff Member" as Staff
+boundary "Search UI (appointments.html)" as UI
+control "AppointmentController" as AptCtrl
+participant "AppointmentService" as AptSvc
+database "AppointmentRepository" as AptRepo
+
+Staff -> UI: Inputs Appointment Number (e.g. "APT-2026-000001")
+UI -> AptCtrl: GET /api/appointments/search?appointmentNumber=APT-2026-000001
+activate AptCtrl
+
+AptCtrl -> AptSvc: findByAppointmentNumber("APT-2026-000001")
+activate AptSvc
+
+AptSvc -> AptRepo: findByAppointmentNumber("APT-2026-000001")
+activate AptRepo
+
+alt Appointment Not Found
+    AptRepo --> AptSvc: Optional.empty()
+    AptSvc --> AptCtrl: throw ResourceNotFoundException("No appointment found with the provided appointment number.")
+    AptCtrl --> UI: 404 Not Found (ErrorResponse)
+    UI --> Staff: Display alert: "No appointment found with the provided appointment number."
+else Appointment Found
+    AptRepo --> AptSvc: Appointment Entity
+    deactivate AptRepo
+
+    AptSvc -> AptSvc: mapToResponseDto(appointment)
+    AptSvc --> AptCtrl: AppointmentResponse DTO
+    AptCtrl --> UI: 200 OK (AppointmentResponse JSON)
+    UI --> Staff: Render complete appointment card (Patient details, Doctor, Treatment, Time, Status, Notes)
+end
+
+deactivate AptSvc
+deactivate AptCtrl
+@enduml

@@ -1,0 +1,226 @@
+@startuml
+title Sunrise Dental Clinic - Comprehensive Class Diagram
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam monochrome false
+
+package "com.sunrise.dental.entity" {
+    class User {
+        - Long id
+        - String username
+        - String passwordHash
+        - String fullName
+        - String email
+        - Role role
+        - Boolean isActive
+        - LocalDateTime createdAt
+        - LocalDateTime updatedAt
+    }
+
+    class Patient {
+        - Long id
+        - String patientNumber
+        - String fullName
+        - String address
+        - String contactNumber
+        - String email
+        - LocalDate dateOfBirth
+        - String gender
+        - LocalDateTime createdAt
+        - LocalDateTime updatedAt
+    }
+
+    class Dentist {
+        - Long id
+        - String dentistNumber
+        - String name
+        - String specialization
+        - String contactNumber
+        - String email
+        - DentistStatus availabilityStatus
+        - LocalDateTime createdAt
+        - LocalDateTime updatedAt
+    }
+
+    class Treatment {
+        - Long id
+        - String treatmentCode
+        - String treatmentName
+        - String description
+        - BigDecimal treatmentCost
+        - BigDecimal consultationFee
+        - String status
+        - LocalDateTime createdAt
+        - LocalDateTime updatedAt
+    }
+
+    class Appointment {
+        - Long id
+        - String appointmentNumber
+        - Patient patient
+        - Dentist dentist
+        - Treatment treatment
+        - LocalDate appointmentDate
+        - LocalTime appointmentTime
+        - AppointmentStatus status
+        - String notes
+        - LocalDateTime createdAt
+        - LocalDateTime updatedAt
+    }
+
+    class Bill {
+        - Long id
+        - String billNumber
+        - Appointment appointment
+        - BigDecimal consultationFee
+        - BigDecimal treatmentCost
+        - BigDecimal subtotal
+        - BigDecimal discountPercentage
+        - BigDecimal discountAmount
+        - BigDecimal taxPercentage
+        - BigDecimal taxAmount
+        - BigDecimal totalAmount
+        - PaymentStatus paymentStatus
+        - LocalDateTime createdAt
+        - LocalDateTime updatedAt
+    }
+
+    class Payment {
+        - Long id
+        - String paymentNumber
+        - Bill bill
+        - BigDecimal amountPaid
+        - PaymentMethod paymentMethod
+        - LocalDateTime paymentDate
+        - String notes
+    }
+
+    class AuditLog {
+        - Long id
+        - String username
+        - String action
+        - String entityName
+        - String entityId
+        - String details
+        - LocalDateTime timestamp
+    }
+}
+
+package "com.sunrise.dental.enums" {
+    enum Role {
+        ADMIN
+        RECEPTIONIST
+        DENTIST
+    }
+
+    enum AppointmentStatus {
+        BOOKED
+        CONFIRMED
+        COMPLETED
+        CANCELLED
+        NO_SHOW
+    }
+
+    enum PaymentStatus {
+        PENDING
+        PAID
+        PARTIALLY_PAID
+        CANCELLED
+    }
+
+    enum PaymentMethod {
+        CASH
+        CARD
+        BANK_TRANSFER
+    }
+
+    enum DentistStatus {
+        AVAILABLE
+        ON_LEAVE
+        INACTIVE
+    }
+}
+
+package "com.sunrise.dental.pattern.strategy" {
+    interface PaymentStrategy {
+        + processPayment(BigDecimal amount, String details) : boolean
+        + getSupportedMethod() : PaymentMethod
+    }
+
+    class CashPaymentStrategy implements PaymentStrategy {
+        + processPayment(BigDecimal amount, String details) : boolean
+    }
+
+    class CardPaymentStrategy implements PaymentStrategy {
+        + processPayment(BigDecimal amount, String details) : boolean
+    }
+
+    class BankTransferPaymentStrategy implements PaymentStrategy {
+        + processPayment(BigDecimal amount, String details) : boolean
+    }
+
+    class PaymentStrategyContext {
+        - Map<PaymentMethod, PaymentStrategy> strategies
+        + execute(PaymentMethod method, BigDecimal amount, String details) : boolean
+    }
+}
+
+package "com.sunrise.dental.pattern.factory" {
+    class ReceiptFactory {
+        + {static} createReceipt(Bill bill, Payment payment) : ReceiptResponse
+    }
+}
+
+package "com.sunrise.dental.service" {
+    interface AppointmentService {
+        + createAppointment(AppointmentRequest req) : AppointmentResponse
+        + getAppointmentByNumber(String aptNumber) : AppointmentResponse
+        + updateAppointmentStatus(Long id, AppointmentStatus status) : AppointmentResponse
+        + cancelAppointment(Long id) : AppointmentResponse
+        + searchAppointments(...) : List<AppointmentResponse>
+    }
+
+    interface BillingService {
+        + generateBill(BillRequest req) : BillResponse
+        + calculateCharges(Long appointmentId, BigDecimal discountPct, BigDecimal taxPct) : BillResponse
+        + getBillById(Long id) : BillResponse
+    }
+
+    interface PaymentService {
+        + recordPayment(PaymentRequest req) : ReceiptResponse
+    }
+}
+
+package "com.sunrise.dental.controller" {
+    class AppointmentController {
+        - AppointmentService appointmentService
+        + createAppointment(AppointmentRequest req) : ResponseEntity<AppointmentResponse>
+        + getByNumber(String aptNumber) : ResponseEntity<AppointmentResponse>
+        + cancelAppointment(Long id) : ResponseEntity<AppointmentResponse>
+    }
+
+    class BillController {
+        - BillingService billingService
+        + generateBill(BillRequest req) : ResponseEntity<BillResponse>
+    }
+
+    class PaymentController {
+        - PaymentService paymentService
+        + recordPayment(PaymentRequest req) : ResponseEntity<ReceiptResponse>
+    }
+}
+
+' Entity Relationships
+Patient "1" *-- "0..*" Appointment : books
+Dentist "1" *-- "0..*" Appointment : conducts
+Treatment "1" *-- "0..*" Appointment : specifies
+Appointment "1" *-- "1" Bill : generates
+Bill "1" *-- "0..*" Payment : settles
+
+AppointmentController --> AppointmentService
+BillController --> BillingService
+PaymentController --> PaymentService
+PaymentService --> PaymentStrategyContext
+PaymentService --> ReceiptFactory
+
+@enduml

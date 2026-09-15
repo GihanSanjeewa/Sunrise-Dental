@@ -1,0 +1,53 @@
+@startuml
+title Sequence Diagram: Authentication & Authorization Flow
+autonumber
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
+
+actor "Staff Member" as User
+boundary "Login Page (login.html)" as UI
+control "AuthController" as AuthCtrl
+participant "AuthService" as AuthSvc
+participant "BCryptPasswordEncoder" as Encoder
+database "UserRepository" as UserRepo
+
+User -> UI: Enters Username & Password
+UI -> UI: Client-Side Field Validation (Non-Empty)
+
+UI -> AuthCtrl: POST /api/auth/login (LoginRequest)
+activate AuthCtrl
+
+AuthCtrl -> AuthSvc: authenticate(username, password)
+activate AuthSvc
+
+AuthSvc -> UserRepo: findByUsername(username)
+activate UserRepo
+
+alt User Not Found
+    UserRepo --> AuthSvc: Optional.empty()
+    AuthSvc --> AuthCtrl: throw UnauthorizedException("Invalid username or password.")
+    AuthCtrl --> UI: 401 Unauthorized (ErrorResponse)
+    UI --> User: Display "Invalid username or password."
+else User Found
+    UserRepo --> AuthSvc: User Entity
+    deactivate UserRepo
+
+    AuthSvc -> Encoder: matches(rawPassword, user.getPasswordHash())
+    alt Password Mismatch
+        Encoder --> AuthSvc: false
+        AuthSvc --> AuthCtrl: throw UnauthorizedException("Invalid username or password.")
+        AuthCtrl --> UI: 401 Unauthorized (ErrorResponse)
+        UI --> User: Display "Invalid username or password."
+    else Password Matches
+        Encoder --> AuthSvc: true
+        AuthSvc -> AuthSvc: generateSessionToken(user)
+        AuthSvc --> AuthCtrl: AuthResponse (username, role, token, fullName)
+        AuthCtrl --> UI: 200 OK (AuthResponse JSON)
+        UI -> UI: Store Session in sessionStorage
+        UI --> User: Redirect to dashboard.html based on Role
+    end
+end
+
+deactivate AuthSvc
+deactivate AuthCtrl
+@enduml

@@ -1,0 +1,102 @@
+@startuml
+title Sunrise Dental Clinic - Complete Use Case Diagram
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam monochrome false
+
+actor "Clinic Administrator" as Admin
+actor "Receptionist" as Receptionist
+actor "Dentist" as Dentist
+
+rectangle "Sunrise Dental Clinic System" {
+    package "Authentication & Profile" {
+        usecase "Login & Authenticate" as UC_Login
+        usecase "Invalid Login Recovery" as UC_LoginError
+        usecase "Logout" as UC_Logout
+        usecase "Manage Staff Accounts" as UC_ManageUsers
+    }
+
+    package "Patient Management" {
+        usecase "Register New Patient" as UC_RegPatient
+        usecase "Search Patient" as UC_SearchPatient
+        usecase "Update Patient Profile" as UC_UpdatePatient
+        usecase "View Medical History" as UC_ViewHistory
+    }
+
+    package "Appointment Management" {
+        usecase "Schedule Appointment" as UC_CreateApt
+        usecase "Verify Dentist Availability" as UC_CheckAvailability
+        usecase "Validate Slot Conflict (Double Booking)" as UC_CheckConflict
+        usecase "Search Appointment by Number" as UC_SearchApt
+        usecase "Update / Reschedule Appointment" as UC_UpdateApt
+        usecase "Cancel Appointment" as UC_CancelApt
+        usecase "Record Clinical Treatment Notes" as UC_ClinicalNotes
+    }
+
+    package "Dentist & Treatment Catalog" {
+        usecase "Manage Dentists & Rosters" as UC_ManageDentists
+        usecase "Manage Treatment Catalog & Prices" as UC_ManageTreatments
+    }
+
+    package "Billing & Payment" {
+        usecase "Generate Appointment Bill" as UC_GenBill
+        usecase "Calculate Itemized Charges" as UC_CalcCharges
+        usecase "Record Payment" as UC_RecordPayment
+        usecase "Print Official Receipt" as UC_PrintReceipt
+    }
+
+    package "Reporting & Auditing" {
+        usecase "Generate Daily / Monthly Reports" as UC_ViewReports
+        usecase "View Audit Trail" as UC_Audit
+        usecase "Consult Staff Help Manual" as UC_Help
+    }
+}
+
+' Administrator Associations
+Admin --> UC_Login
+Admin --> UC_Logout
+Admin --> UC_ManageUsers
+Admin --> UC_ManageDentists
+Admin --> UC_ManageTreatments
+Admin --> UC_ViewReports
+Admin --> UC_Audit
+Admin --> UC_SearchApt
+Admin --> UC_Help
+
+' Receptionist Associations
+Receptionist --> UC_Login
+Receptionist --> UC_Logout
+Receptionist --> UC_RegPatient
+Receptionist --> UC_SearchPatient
+Receptionist --> UC_UpdatePatient
+Receptionist --> UC_CreateApt
+Receptionist --> UC_SearchApt
+Receptionist --> UC_UpdateApt
+Receptionist --> UC_CancelApt
+Receptionist --> UC_GenBill
+Receptionist --> UC_RecordPayment
+Receptionist --> UC_PrintReceipt
+Receptionist --> UC_ViewReports
+Receptionist --> UC_Help
+
+' Dentist Associations
+Dentist --> UC_Login
+Dentist --> UC_Logout
+Dentist --> UC_SearchApt
+Dentist --> UC_ClinicalNotes
+Dentist --> UC_SearchPatient
+Dentist --> UC_ViewHistory
+Dentist --> UC_Help
+
+' Include & Extend relationships
+UC_Login <.. UC_LoginError : <<extend>>
+UC_CreateApt ..> UC_CheckAvailability : <<include>>
+UC_CreateApt ..> UC_CheckConflict : <<include>>
+UC_UpdateApt ..> UC_CheckConflict : <<include>>
+UC_CancelApt ..> UC_SearchApt : <<extend>>
+UC_GenBill ..> UC_CalcCharges : <<include>>
+UC_PrintReceipt ..> UC_RecordPayment : <<extend>>
+UC_ClinicalNotes ..> UC_SearchApt : <<include>>
+
+@enduml

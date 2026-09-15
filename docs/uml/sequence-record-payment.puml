@@ -1,0 +1,60 @@
+@startuml
+title Sequence Diagram: Payment Recording & Receipt Generation Flow
+autonumber
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
+
+actor "Receptionist" as Rec
+boundary "Payment & Receipt UI" as UI
+control "PaymentController" as PayCtrl
+participant "PaymentService" as PaySvc
+participant "PaymentStrategyContext" as StratCtx
+participant "CashPaymentStrategy" as CashStrat
+database "BillRepository" as BillRepo
+database "PaymentRepository" as PayRepo
+participant "ReceiptFactory" as Factory
+participant "AuditService" as Audit
+
+Rec -> UI: Selects Bill, Chooses Payment Method (CASH), Enters Amount Paid
+UI -> PayCtrl: POST /api/payments (PaymentRequest)
+activate PayCtrl
+
+PayCtrl -> PaySvc: processPayment(request)
+activate PaySvc
+
+PaySvc -> BillRepo: findById(request.billId)
+BillRepo --> PaySvc: Bill Entity
+
+' Strategy Pattern Execution
+PaySvc -> StratCtx: execute(request.paymentMethod, request.amountPaid)
+activate StratCtx
+StratCtx -> CashStrat: validateAndProcess(amountPaid, bill.totalAmount)
+activate CashStrat
+CashStrat --> StratCtx: success (true)
+deactivate CashStrat
+StratCtx --> PaySvc: success (true)
+deactivate StratCtx
+
+' Record Payment Entity
+PaySvc -> PaySvc: generateNextPaymentNumber() -> "PAY-2026-000002"
+PaySvc -> PayRepo: save(newPayment)
+
+' Update Bill Payment Status
+PaySvc -> BillRepo: updatePaymentStatus(billId, "PAID")
+
+' Factory Pattern: Printable Receipt Generation
+PaySvc -> Factory: createReceipt(bill, payment)
+activate Factory
+note over Factory: Assembles Clinic Header ("SUNRISE DENTAL CLINIC Colombo"),\nReceipt metadata, Patient info, Dentist, Treatment details,\nItemized fees, Payment method, and Footer note.
+Factory --> PaySvc: ReceiptResponse DTO
+deactivate Factory
+
+PaySvc -> Audit: log("receptionist", "SETTLE_PAYMENT", "BILL", bill.billNumber)
+
+PaySvc --> PayCtrl: ReceiptResponse DTO
+PayCtrl --> UI: 200 OK (ReceiptResponse JSON)
+deactivate PaySvc
+deactivate PayCtrl
+
+UI --> Rec: Render Official Printable Receipt Modal with window.print() trigger
+@enduml

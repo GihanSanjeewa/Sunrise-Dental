@@ -1,0 +1,44 @@
+@startuml
+title Sequence Diagram: Dynamic Bill Generation Flow
+autonumber
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
+
+actor "Receptionist" as Rec
+boundary "Billing UI (billing.html)" as UI
+control "BillController" as BillCtrl
+participant "BillingService" as BillSvc
+database "AppointmentRepository" as AptRepo
+database "TreatmentRepository" as TrtRepo
+database "BillRepository" as BillRepo
+participant "AuditService" as Audit
+
+Rec -> UI: Selects completed appointment, inputs Discount % (e.g. 5%) & Tax % (e.g. 2.5%)
+UI -> BillCtrl: POST /api/bills (BillRequest)
+activate BillCtrl
+
+BillCtrl -> BillSvc: generateBill(request)
+activate BillSvc
+
+BillSvc -> AptRepo: findById(request.appointmentId)
+AptRepo --> BillSvc: Appointment Entity (with linked Treatment)
+
+BillSvc -> TrtRepo: findById(treatment.id)
+TrtRepo --> BillSvc: Treatment Entity (ConsultationFee=2000, TreatmentCost=6000)
+
+note over BillSvc: Dynamic Price Calculation Engine:\nSubtotal = consultationFee + treatmentCost (8000.00)\nDiscountAmount = Subtotal * (discountPct / 100) = 400.00\nTaxableAmount = Subtotal - DiscountAmount = 7600.00\nTaxAmount = TaxableAmount * (taxPct / 100) = 190.00\nTotalAmount = TaxableAmount + TaxAmount = 7790.00
+
+BillSvc -> BillSvc: generateNextBillNumber() -> "BILL-2026-000002"
+BillSvc -> BillRepo: save(newBill)
+activate BillRepo
+BillRepo --> BillSvc: persistedBill
+deactivate BillRepo
+
+BillSvc -> Audit: log("receptionist", "GENERATE", "BILL", "BILL-2026-000002")
+
+BillSvc --> BillCtrl: BillResponse DTO
+BillCtrl --> UI: 201 Created (BillResponse JSON)
+UI --> Rec: Render Itemized Invoice Preview
+deactivate BillSvc
+deactivate BillCtrl
+@enduml
