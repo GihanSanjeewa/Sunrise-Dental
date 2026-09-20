@@ -90,6 +90,9 @@ public class AppointmentServiceImpl implements AppointmentService {
             aptNumber = IdSequenceGenerator.generateAppointmentNumber(nextId);
         }
 
+        long countToday = appointmentRepository.countByAppointmentDate(request.getAppointmentDate());
+        String tokenNumber = IdSequenceGenerator.generateTokenNumber((int) countToday + 1);
+
         Appointment appointment = new Appointment(
                 aptNumber,
                 patient,
@@ -100,10 +103,11 @@ public class AppointmentServiceImpl implements AppointmentService {
                 AppointmentStatus.BOOKED,
                 request.getNotes() != null ? request.getNotes().trim() : null
         );
+        appointment.setTokenNumber(tokenNumber);
 
         Appointment saved = appointmentRepository.save(appointment);
         auditService.logAction("RECEPTIONIST", "BOOK", "APPOINTMENT", saved.getAppointmentNumber(),
-                "Booked appointment for " + patient.getFullName() + " with " + dentist.getName() + " on " + saved.getAppointmentDate() + " at " + saved.getAppointmentTime());
+                "Booked appointment for " + patient.getFullName() + " with " + dentist.getName() + " on " + saved.getAppointmentDate() + " at " + saved.getAppointmentTime() + " (Token: " + tokenNumber + ")");
 
         return mapToResponse(saved);
     }
@@ -250,6 +254,60 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<AppointmentResponse> getDailyQueue(LocalDate date) {
+        LocalDate queryDate = date != null ? date : LocalDate.now();
+        return appointmentRepository.findByAppointmentDate(queryDate).stream()
+                .sorted((a1, a2) -> a1.getAppointmentTime().compareTo(a2.getAppointmentTime()))
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public AppointmentResponse callPatient(Long id) {
+        Appointment apt = appointmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found with ID: " + id));
+        apt.setStatus(AppointmentStatus.CALLED);
+        Appointment saved = appointmentRepository.save(apt);
+        auditService.logAction("STAFF", "CALL_PATIENT", "APPOINTMENT", saved.getAppointmentNumber(),
+                "Called patient " + saved.getPatient().getFullName() + " (Token: " + saved.getTokenNumber() + ")");
+        return mapToResponse(saved);
+    }
+
+    @Override
+    public AppointmentResponse startTreatment(Long id) {
+        Appointment apt = appointmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found with ID: " + id));
+        apt.setStatus(AppointmentStatus.IN_TREATMENT);
+        Appointment saved = appointmentRepository.save(apt);
+        auditService.logAction("DENTIST", "START_TREATMENT", "APPOINTMENT", saved.getAppointmentNumber(),
+                "Started treatment for " + saved.getPatient().getFullName());
+        return mapToResponse(saved);
+    }
+
+    @Override
+    public AppointmentResponse completeVisit(Long id) {
+        Appointment apt = appointmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found with ID: " + id));
+        apt.setStatus(AppointmentStatus.COMPLETED);
+        Appointment saved = appointmentRepository.save(apt);
+        auditService.logAction("STAFF", "COMPLETE_VISIT", "APPOINTMENT", saved.getAppointmentNumber(),
+                "Completed visit for " + saved.getPatient().getFullName());
+        return mapToResponse(saved);
+    }
+
+    @Override
+    public AppointmentResponse markNoShow(Long id) {
+        Appointment apt = appointmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found with ID: " + id));
+        apt.setStatus(AppointmentStatus.NO_SHOW);
+        Appointment saved = appointmentRepository.save(apt);
+        auditService.logAction("STAFF", "MARK_NO_SHOW", "APPOINTMENT", saved.getAppointmentNumber(),
+                "Marked patient as No-Show for appointment " + saved.getAppointmentNumber());
+        return mapToResponse(saved);
+    }
+
     private void validateAppointmentRequest(AppointmentRequest request) {
         if (request.getPatientId() == null) {
             throw new ValidationException("Patient ID cannot be empty.");
@@ -280,6 +338,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         AppointmentResponse resp = new AppointmentResponse();
         resp.setId(a.getId());
         resp.setAppointmentNumber(a.getAppointmentNumber());
+        resp.setTokenNumber(a.getTokenNumber());
 
         if (a.getPatient() != null) {
             resp.setPatientId(a.getPatient().getId());

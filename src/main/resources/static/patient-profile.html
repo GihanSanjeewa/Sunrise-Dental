@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient 360° Profile - Sunrise Dental Clinic</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+                <div class="sidebar-brand-text">
+                    <h5>Sunrise Dental</h5>
+                    <small>Colombo Center</small>
+                </div>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-section-title">Operations</div>
+                <a href="dashboard.html" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                <a href="queue.html" class="sidebar-link"><i class="bi bi-people-fill"></i> Daily Queue & Tokens</a>
+                <a href="appointments.html" class="sidebar-link"><i class="bi bi-calendar-check"></i> Appointments</a>
+                <a href="patients.html" class="sidebar-link active"><i class="bi bi-people"></i> Patients</a>
+                <a href="billing.html" class="sidebar-link receptionist-only"><i class="bi bi-receipt"></i> Billing & Payments</a>
+
+                <div class="nav-section-title">Clinical & Workspace</div>
+                <a href="dentist-workspace.html" class="sidebar-link"><i class="bi bi-hospital"></i> Dentist Workspace</a>
+                <a href="dentists.html" class="sidebar-link"><i class="bi bi-person-badge"></i> Dentists</a>
+                <a href="treatments.html" class="sidebar-link"><i class="bi bi-journal-medical"></i> Treatments</a>
+                <a href="inventory.html" class="sidebar-link"><i class="bi bi-boxes"></i> Inventory & Supplies</a>
+
+                <div class="nav-section-title">Management & Support</div>
+                <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-line"></i> Reports & Analytics</a>
+                <a href="help.html" class="sidebar-link"><i class="bi bi-question-circle"></i> Staff Help Guide</a>
+                <a href="users.html" class="sidebar-link admin-only"><i class="bi bi-shield-lock"></i> User Accounts</a>
+            </div>
+            <div class="sidebar-user">
+                <div class="user-badge mb-2">
+                    <div class="user-avatar" id="currentUserAvatar">U</div>
+                    <div class="user-info">
+                        <div class="user-name" id="currentUserName">Loading...</div>
+                        <div class="user-role" id="currentUserRole">STAFF</div>
+                    </div>
+                </div>
+                <button onclick="handleLogout()" class="btn btn-outline-light btn-sm w-100 py-1">
+                    <i class="bi bi-box-arrow-right me-1"></i> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <a href="patients.html" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Directory
+                    </a>
+                    <div class="page-title mb-0">
+                        <h1 id="patientHeaderName">Patient 360° Profile</h1>
+                        <p id="patientHeaderSub">Loading clinical file...</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-teal" onclick="openNewRecordModal()">
+                        <i class="bi bi-file-earmark-medical me-1"></i> Add Clinical Record
+                    </button>
+                    <button class="btn btn-outline-teal" onclick="openNewRxModal()">
+                        <i class="bi bi-prescription2 me-1"></i> Prescribe Rx
+                    </button>
+                    <button class="btn btn-teal" onclick="openNewPlanModal()">
+                        <i class="bi bi-diagram-3 me-1"></i> Create Treatment Plan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Patient Summary Card -->
+            <div class="card-custom mb-4">
+                <div class="card-body">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-auto">
+                            <div class="rounded-circle bg-teal text-white d-flex align-items-center justify-content-center" style="width: 64px; height: 64px; font-size: 1.6rem; font-weight: bold;" id="patientAvatar">
+                                P
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="d-flex align-items-center gap-3">
+                                <h3 class="mb-0 fw-bold" id="patientSummaryName">Loading...</h3>
+                                <span class="badge bg-secondary" id="patientNumberBadge">P-000000</span>
+                                <span class="badge bg-info text-dark" id="patientGenderBadge">MALE</span>
+                            </div>
+                            <div class="row mt-2 text-muted small g-3">
+                                <div class="col-auto"><i class="bi bi-calendar-event me-1"></i><strong>DOB:</strong> <span id="patientDob">—</span></div>
+                                <div class="col-auto"><i class="bi bi-telephone me-1"></i><strong>Phone:</strong> <span id="patientPhone">—</span></div>
+                                <div class="col-auto"><i class="bi bi-envelope me-1"></i><strong>Email:</strong> <span id="patientEmail">—</span></div>
+                                <div class="col-auto"><i class="bi bi-geo-alt me-1"></i><strong>Address:</strong> <span id="patientAddress">—</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Navigation Tabs -->
+            <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active fw-semibold" id="tab-chart-btn" data-bs-toggle="tab" data-bs-target="#tab-chart" type="button">
+                        <i class="bi bi-grid-3x3-gap-fill me-1 text-teal"></i> FDI Tooth Chart
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-semibold" id="tab-clinical-btn" data-bs-toggle="tab" data-bs-target="#tab-clinical" type="button">
+                        <i class="bi bi-clock-history me-1 text-teal"></i> Clinical History
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-semibold" id="tab-diagnoses-btn" data-bs-toggle="tab" data-bs-target="#tab-diagnoses" type="button">
+                        <i class="bi bi-clipboard2-pulse me-1 text-teal"></i> Diagnoses
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-semibold" id="tab-plans-btn" data-bs-toggle="tab" data-bs-target="#tab-plans" type="button">
+                        <i class="bi bi-diagram-3-fill me-1 text-teal"></i> Treatment Plans
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-semibold" id="tab-rx-btn" data-bs-toggle="tab" data-bs-target="#tab-rx" type="button">
+                        <i class="bi bi-prescription2 me-1 text-teal"></i> Prescriptions
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-semibold" id="tab-docs-btn" data-bs-toggle="tab" data-bs-target="#tab-docs" type="button">
+                        <i class="bi bi-file-earmark-medical me-1 text-teal"></i> Documents & X-Rays
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-semibold" id="tab-appointments-btn" data-bs-toggle="tab" data-bs-target="#tab-appointments" type="button">
+                        <i class="bi bi-calendar-check me-1 text-teal"></i> Appointments
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content Panes -->
+            <div class="tab-content" id="profileTabContent">
+
+                <!-- 1. FDI TOOTH CHART TAB -->
+                <div class="tab-pane fade show active" id="tab-chart" role="tabpanel">
+                    <div class="card-custom">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-0"><i class="bi bi-grid-3x3-gap me-2 text-teal"></i>Interactive FDI 32-Tooth Adult Chart</h5>
+                                <small class="text-muted">Click any tooth to examine, update condition, or review history</small>
+                            </div>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <span class="badge tooth-HEALTHY">HEALTHY</span>
+                                <span class="badge tooth-CARIES">CARIES</span>
+                                <span class="badge tooth-FILLED">FILLED</span>
+                                <span class="badge tooth-CROWN">CROWN</span>
+                                <span class="badge tooth-ROOT_CANAL">ROOT CANAL</span>
+                                <span class="badge tooth-IMPLANT">IMPLANT</span>
+                                <span class="badge tooth-MISSING">MISSING</span>
+                                <span class="badge tooth-TO_EXTRACT">TO EXTRACT</span>
+                                <span class="badge tooth-IMPACTED">IMPACTED</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- Upper Arch (Maxilla) -->
+                            <div class="text-center mb-2">
+                                <span class="chart-arch-header"><i class="bi bi-arrow-up-circle me-1"></i> Upper Arch (Maxillary)</span>
+                            </div>
+                            <div class="row g-2 mb-4">
+                                <!-- Q1: Upper Right (18 to 11) -->
+                                <div class="col-md-6 quadrant-divider">
+                                    <div class="small fw-bold text-muted mb-1 text-center">Upper Right (Quadrant 1: 18 - 11)</div>
+                                    <div class="tooth-quadrant" id="quadrant1"></div>
+                                </div>
+                                <!-- Q2: Upper Left (21 to 28) -->
+                                <div class="col-md-6">
+                                    <div class="small fw-bold text-muted mb-1 text-center">Upper Left (Quadrant 2: 21 - 28)</div>
+                                    <div class="tooth-quadrant" id="quadrant2"></div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Lower Arch (Mandible) -->
+                            <div class="text-center mb-2">
+                                <span class="chart-arch-header"><i class="bi bi-arrow-down-circle me-1"></i> Lower Arch (Mandibular)</span>
+                            </div>
+                            <div class="row g-2">
+                                <!-- Q4: Lower Right (48 to 41) -->
+                                <div class="col-md-6 quadrant-divider">
+                                    <div class="small fw-bold text-muted mb-1 text-center">Lower Right (Quadrant 4: 48 - 41)</div>
+                                    <div class="tooth-quadrant" id="quadrant4"></div>
+                                </div>
+                                <!-- Q3: Lower Left (31 to 38) -->
+                                <div class="col-md-6">
+                                    <div class="small fw-bold text-muted mb-1 text-center">Lower Left (Quadrant 3: 31 - 38)</div>
+                                    <div class="tooth-quadrant" id="quadrant3"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. CLINICAL HISTORY TAB -->
+                <div class="tab-pane fade" id="tab-clinical" role="tabpanel">
+                    <div class="card-custom">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-journal-medical me-2 text-teal"></i>Chronological Clinical Examination History</h5>
+                            <button class="btn btn-teal btn-sm" onclick="openNewRecordModal()">
+                                <i class="bi bi-plus-lg me-1"></i> New Examination Record
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="clinicalTimeline" class="timeline">
+                                <div class="text-center py-4 text-muted">Loading clinical records...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. DIAGNOSES TAB -->
+                <div class="tab-pane fade" id="tab-diagnoses" role="tabpanel">
+                    <div class="card-custom">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-clipboard2-pulse me-2 text-teal"></i>Recorded Diagnoses</h5>
+                            <button class="btn btn-teal btn-sm" onclick="openNewDiagnosisModal()">
+                                <i class="bi bi-plus-lg me-1"></i> Add Diagnosis
+                            </button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-custom mb-0 align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Tooth #</th>
+                                            <th>Condition</th>
+                                            <th>Diagnosis & Description</th>
+                                            <th>Severity</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="diagnosesTableBody">
+                                        <tr><td colspan="6" class="text-center py-4 text-muted">Loading diagnoses...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. TREATMENT PLANS TAB -->
+                <div class="tab-pane fade" id="tab-plans" role="tabpanel">
+                    <div class="card-custom">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-diagram-3-fill me-2 text-teal"></i>Structured Treatment Plans</h5>
+                            <button class="btn btn-teal btn-sm" onclick="openNewPlanModal()">
+                                <i class="bi bi-plus-lg me-1"></i> Create Treatment Plan
+                            </button>
+                        </div>
+                        <div class="card-body" id="treatmentPlansContainer">
+                            <div class="text-center py-4 text-muted">Loading treatment plans...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. PRESCRIPTIONS TAB -->
+                <div class="tab-pane fade" id="tab-rx" role="tabpanel">
+                    <div class="card-custom">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-prescription2 me-2 text-teal"></i>Prescription History</h5>
+                            <button class="btn btn-teal btn-sm" onclick="openNewRxModal()">
+                                <i class="bi bi-plus-lg me-1"></i> New Prescription
+                            </button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-custom mb-0 align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Rx #</th>
+                                            <th>Date</th>
+                                            <th>Prescribing Dentist</th>
+                                            <th>Medications</th>
+                                            <th>Notes</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="prescriptionsTableBody">
+                                        <tr><td colspan="6" class="text-center py-4 text-muted">Loading prescriptions...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. DOCUMENTS & X-RAYS TAB -->
+                <div class="tab-pane fade" id="tab-docs" role="tabpanel">
+                    <div class="card-custom">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-file-earmark-medical me-2 text-teal"></i>Patient Documents, X-Rays & Reports</h5>
+                            <button class="btn btn-teal btn-sm" onclick="openUploadDocModal()">
+                                <i class="bi bi-upload me-1"></i> Upload Document / X-Ray
+                            </button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-custom mb-0 align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Type</th>
+                                            <th>File Name</th>
+                                            <th>Size</th>
+                                            <th>Upload Date</th>
+                                            <th>Uploaded By</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="documentsTableBody">
+                                        <tr><td colspan="7" class="text-center py-4 text-muted">Loading documents...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. APPOINTMENTS TAB -->
+                <div class="tab-pane fade" id="tab-appointments" role="tabpanel">
+                    <div class="card-custom">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-calendar-check me-2 text-teal"></i>Appointment History</h5>
+                            <a id="bookAptLink" href="appointments.html" class="btn btn-teal btn-sm">
+                                <i class="bi bi-calendar-plus me-1"></i> Book New Appointment
+                            </a>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-custom mb-0 align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Appt #</th>
+                                            <th>Token</th>
+                                            <th>Date & Time</th>
+                                            <th>Dentist</th>
+                                            <th>Treatment</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="appointmentsTableBody">
+                                        <tr><td colspan="6" class="text-center py-4 text-muted">Loading appointments...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL: Update Tooth Condition -->
+    <div class="modal fade" id="toothModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="toothModalTitle"><i class="bi bi-gear text-teal me-2"></i>Tooth Examination</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="toothForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="toothRecordId">
+                        <input type="hidden" id="toothNumber">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Condition</label>
+                            <select class="form-select" id="toothConditionSelect" required>
+                                <option value="HEALTHY">HEALTHY - Sound Tooth</option>
+                                <option value="CARIES">CARIES - Active Decay</option>
+                                <option value="FILLED">FILLED - Restored</option>
+                                <option value="CROWN">CROWN - Prosthetic Crown</option>
+                                <option value="ROOT_CANAL">ROOT CANAL - Endodontic Therapy</option>
+                                <option value="IMPLANT">IMPLANT - Osseointegrated Implant</option>
+                                <option value="MISSING">MISSING - Extracted / Absent</option>
+                                <option value="TO_EXTRACT">TO EXTRACT - Extraction Indicated</option>
+                                <option value="IMPACTED">IMPACTED - Unerupted / Impacted</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Clinical Notes</label>
+                            <textarea class="form-control" id="toothNotes" rows="3" placeholder="Enter findings, surface details (MOD), or clinical observations..."></textarea>
+                        </div>
+                        <div class="border-top pt-3">
+                            <h6 class="fw-bold small text-muted mb-2">Condition Transition History</h6>
+                            <div id="toothHistoryList" class="small" style="max-height: 150px; overflow-y: auto;">
+                                <em>No history recorded yet.</em>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-teal"><i class="bi bi-save me-1"></i> Update Tooth</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Add Clinical Record -->
+    <div class="modal fade" id="clinicalRecordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-file-earmark-medical text-teal me-2"></i>New Clinical Record</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="clinicalRecordForm">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Attending Dentist <span class="text-danger">*</span></label>
+                                <select class="form-select" id="recordDentistSelect" required></select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Examination Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="recordDate" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small">Chief Complaint <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="recordChiefComplaint" rows="2" placeholder="Patient's primary complaint..." required></textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small">Clinical Findings & Examination <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="recordFindings" rows="3" placeholder="Intraoral examination findings, soft tissue observations..." required></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Periodontal Status</label>
+                                <input type="text" class="form-control" id="recordPeriodontal" placeholder="e.g. Mild gingivitis, PSR 2">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Occlusion</label>
+                                <input type="text" class="form-control" id="recordOcclusion" placeholder="e.g. Class I molar relationship">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small">Diagnosis Notes</label>
+                                <textarea class="form-control" id="recordDiagnosisNotes" rows="2" placeholder="Clinical diagnosis summary..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-teal"><i class="bi bi-save me-1"></i> Save Clinical Record</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Add Diagnosis -->
+    <div class="modal fade" id="diagnosisModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-clipboard2-pulse text-teal me-2"></i>Add Diagnosis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="diagnosisForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Diagnosis Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="diagName" placeholder="e.g. Irreversible Pulpitis, Chronic Periodontitis" required>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">FDI Tooth # (Optional)</label>
+                                <input type="number" min="11" max="48" class="form-control" id="diagToothNumber" placeholder="e.g. 26">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Severity</label>
+                                <select class="form-select" id="diagSeverity">
+                                    <option value="MILD">Mild</option>
+                                    <option value="MODERATE" selected>Moderate</option>
+                                    <option value="SEVERE">Severe</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Tooth Condition</label>
+                            <select class="form-select" id="diagCondition">
+                                <option value="">None</option>
+                                <option value="CARIES">CARIES</option>
+                                <option value="ROOT_CANAL">ROOT_CANAL</option>
+                                <option value="TO_EXTRACT">TO_EXTRACT</option>
+                                <option value="IMPACTED">IMPACTED</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Detailed Clinical Description</label>
+                            <textarea class="form-control" id="diagDescription" rows="3" placeholder="Prognosis, symptom duration, radiographs..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-teal"><i class="bi bi-save me-1"></i> Save Diagnosis</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Create Treatment Plan -->
+    <div class="modal fade" id="planModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-diagram-3 text-teal me-2"></i>Create Structured Treatment Plan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="planForm">
+                    <div class="modal-body">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label fw-semibold small">Plan Title <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="planTitle" placeholder="e.g. Quadrant 2 Restoration & Crown Plan" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small">Dentist <span class="text-danger">*</span></label>
+                                <select class="form-select" id="planDentistSelect" required></select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small">Clinical Goals & Notes</label>
+                                <textarea class="form-control" id="planNotes" rows="2" placeholder="Overall treatment goals and sequencing..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="border-top pt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold small mb-0">Plan Treatment Items (Pricing pulled dynamically from catalog)</h6>
+                                <button type="button" class="btn btn-outline-teal btn-sm" onclick="addPlanItemRow()">
+                                    <i class="bi bi-plus-circle me-1"></i> Add Procedure
+                                </button>
+                            </div>
+                            <table class="table table-sm table-bordered align-middle" id="planItemsTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Treatment</th>
+                                        <th style="width: 90px;">Tooth #</th>
+                                        <th style="width: 75px;">Qty</th>
+                                        <th style="width: 130px;">Unit Cost (LKR)</th>
+                                        <th>Notes</th>
+                                        <th style="width: 40px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="planItemsTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-teal"><i class="bi bi-save me-1"></i> Save Treatment Plan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Prescribe Rx -->
+    <div class="modal fade" id="rxModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-prescription2 text-teal me-2"></i>New Prescription</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="rxForm">
+                    <div class="modal-body">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Prescribing Dentist <span class="text-danger">*</span></label>
+                                <select class="form-select" id="rxDentistSelect" required></select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Prescription Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="rxDate" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small">Clinical Notes / Instructions</label>
+                                <textarea class="form-control" id="rxNotes" rows="2" placeholder="e.g. Take after meals, complete antibiotic course..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="border-top pt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold small mb-0">Medications</h6>
+                                <button type="button" class="btn btn-outline-teal btn-sm" onclick="addRxItemRow()">
+                                    <i class="bi bi-plus-circle me-1"></i> Add Medication
+                                </button>
+                            </div>
+                            <table class="table table-sm table-bordered align-middle" id="rxItemsTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Medication / Drug</th>
+                                        <th style="width: 100px;">Dosage</th>
+                                        <th style="width: 110px;">Frequency</th>
+                                        <th style="width: 90px;">Duration</th>
+                                        <th>Instructions</th>
+                                        <th style="width: 40px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rxItemsTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-teal"><i class="bi bi-save me-1"></i> Save & Issue Prescription</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Upload Document -->
+    <div class="modal fade" id="docModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-upload text-teal me-2"></i>Upload Patient Document / X-Ray</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="docForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Document Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="docTitle" placeholder="e.g. Bitewing X-Ray Q1/Q2" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Document Type <span class="text-danger">*</span></label>
+                            <select class="form-select" id="docType" required>
+                                <option value="XRAY">Dental X-Ray / Radiograph</option>
+                                <option value="LAB_REPORT">Lab Report / Biopsy</option>
+                                <option value="CONSENT_FORM">Signed Consent Form</option>
+                                <option value="REFERRAL_LETTER">Referral Letter</option>
+                                <option value="OTHER">Other Clinical Document</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Select File <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" id="docFile" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Notes</label>
+                            <textarea class="form-control" id="docNotes" rows="2" placeholder="Radiological observations or document description..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-teal"><i class="bi bi-cloud-upload me-1"></i> Upload Document</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Printable Rx Preview -->
+    <div class="modal fade" id="rxPrintModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header no-print">
+                    <h5 class="modal-title"><i class="bi bi-printer text-teal me-2"></i>Printable Prescription</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="rxPrintContent">
+                    <!-- Populated dynamically -->
+                </div>
+                <div class="modal-footer no-print">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-teal" onclick="window.print()"><i class="bi bi-printer me-1"></i> Print Rx</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        let patientId = null;
+        let patientData = null;
+        let dentistsList = [];
+        let treatmentsList = [];
+        let medicationsList = [];
+
+        // Modals
+        let toothModalInstance;
+        let clinicalRecordModalInstance;
+        let diagnosisModalInstance;
+        let planModalInstance;
+        let rxModalInstance;
+        let docModalInstance;
+        let rxPrintModalInstance;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = checkAuth();
+            if (!user) return;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            patientId = urlParams.get('id');
+
+            if (!patientId) {
+                alert('No patient ID specified.');
+                window.location.href = 'patients.html';
+                return;
+            }
+
+            // Init modal instances
+            toothModalInstance = new bootstrap.Modal(document.getElementById('toothModal'));
+            clinicalRecordModalInstance = new bootstrap.Modal(document.getElementById('clinicalRecordModal'));
+            diagnosisModalInstance = new bootstrap.Modal(document.getElementById('diagnosisModal'));
+            planModalInstance = new bootstrap.Modal(document.getElementById('planModal'));
+            rxModalInstance = new bootstrap.Modal(document.getElementById('rxModal'));
+            docModalInstance = new bootstrap.Modal(document.getElementById('docModal'));
+            rxPrintModalInstance = new bootstrap.Modal(document.getElementById('rxPrintModal'));
+
+            // Load lookups
+            await Promise.all([
+                loadDentists(),
+                loadTreatments(),
+                loadMedications()
+            ]);
+
+            // Load Patient Data & Tabs
+            await loadPatientProfile();
+            await loadDentalChart();
+            await loadClinicalRecords();
+            await loadDiagnoses();
+            await loadTreatmentPlans();
+            await loadPrescriptions();
+            await loadDocuments();
+            await loadAppointments();
+
+            // Set up form submits
+            setupForms();
+        });
+
+        async function loadDentists() {
+            try {
+                dentistsList = await apiRequest('/dentists');
+                const options = dentistsList.map(d => `<option value="${d.id}">Dr. ${d.fullName} (${d.specialization})</option>`).join('');
+                document.getElementById('recordDentistSelect').innerHTML = options;
+                document.getElementById('planDentistSelect').innerHTML = options;
+                document.getElementById('rxDentistSelect').innerHTML = options;
+            } catch (e) { console.error('Failed to load dentists', e); }
+        }
+
+        async function loadTreatments() {
+            try {
+                treatmentsList = await apiRequest('/treatments');
+            } catch (e) { console.error('Failed to load treatments', e); }
+        }
+
+        async function loadMedications() {
+            try {
+                medicationsList = await apiRequest('/medications');
+            } catch (e) { console.error('Failed to load medications', e); }
+        }
+
+        async function loadPatientProfile() {
+            try {
+                patientData = await apiRequest(`/patients/${patientId}`);
+                document.getElementById('patientHeaderName').textContent = patientData.fullName;
+                document.getElementById('patientHeaderSub').textContent = `Clinical Record File: ${patientData.patientNumber} | Registered: ${patientData.createdAt ? patientData.createdAt.substring(0, 10) : 'Active'}`;
+                document.getElementById('patientSummaryName').textContent = patientData.fullName;
+                document.getElementById('patientNumberBadge').textContent = patientData.patientNumber;
+                document.getElementById('patientGenderBadge').textContent = patientData.gender;
+                document.getElementById('patientDob').textContent = patientData.dateOfBirth;
+                document.getElementById('patientPhone').textContent = patientData.contactNumber;
+                document.getElementById('patientEmail').textContent = patientData.email || '—';
+                document.getElementById('patientAddress').textContent = patientData.address || '—';
+                document.getElementById('patientAvatar').textContent = patientData.fullName.substring(0, 2).toUpperCase();
+                document.getElementById('bookAptLink').href = `appointments.html?patientId=${patientData.id}&patientName=${encodeURIComponent(patientData.fullName)}`;
+            } catch (err) {
+                showNotification('Failed to load patient: ' + err.message, 'error');
+            }
+        }
+
+        // ==========================================
+        // 1. DENTAL CHART (FDI 32 TEETH)
+        // ==========================================
+        async function loadDentalChart() {
+            try {
+                const chart = await apiRequest(`/dental-chart/patient/${patientId}`);
+                renderQuadrant('quadrant1', chart.quadrant1);
+                renderQuadrant('quadrant2', chart.quadrant2);
+                renderQuadrant('quadrant3', chart.quadrant3);
+                renderQuadrant('quadrant4', chart.quadrant4);
+            } catch (e) {
+                console.error('Failed to load dental chart', e);
+            }
+        }
+
+        function renderQuadrant(elementId, teeth) {
+            const container = document.getElementById(elementId);
+            if (!container || !teeth) return;
+
+            container.innerHTML = teeth.map(t => `
+                <div class="tooth-cell tooth-${t.condition}" onclick="openToothModal(${t.id}, ${t.toothNumber}, '${t.condition}', '${escapeHtml(t.notes || '')}')" title="${t.toothName}: ${t.condition}">
+                    <span class="tooth-number">${t.toothNumber}</span>
+                    <span class="tooth-icon">${getToothIcon(t.condition)}</span>
+                    <span class="tooth-name">${t.toothName ? t.toothName.split(' ')[0] : ''}</span>
+                    <span class="tooth-condition-tag tooth-${t.condition}">${formatCondition(t.condition)}</span>
+                </div>
+            `).join('');
+        }
+
+        function getToothIcon(cond) {
+            switch (cond) {
+                case 'HEALTHY': return '🦷';
+                case 'CARIES': return '🕳️';
+                case 'FILLED': return '🔷';
+                case 'CROWN': return '👑';
+                case 'ROOT_CANAL': return '⚡';
+                case 'IMPLANT': return '🔩';
+                case 'MISSING': return '❌';
+                case 'TO_EXTRACT': return '⚠️';
+                case 'IMPACTED': return '🔒';
+                default: return '🦷';
+            }
+        }
+
+        function formatCondition(cond) {
+            return cond ? cond.replace('_', ' ') : 'HEALTHY';
+        }
+
+        async function openToothModal(recordId, toothNum, currentCond, notes) {
+            document.getElementById('toothRecordId').value = recordId;
+            document.getElementById('toothNumber').value = toothNum;
+            document.getElementById('toothModalTitle').innerHTML = `<i class="bi bi-gear text-teal me-2"></i>Tooth #${toothNum} Examination`;
+            document.getElementById('toothConditionSelect').value = currentCond;
+            document.getElementById('toothNotes').value = notes || '';
+
+            // Load tooth history
+            const historyList = document.getElementById('toothHistoryList');
+            historyList.innerHTML = '<em>Loading history...</em>';
+            try {
+                const history = await apiRequest(`/dental-chart/tooth/${recordId}/history`);
+                if (history && history.length > 0) {
+                    historyList.innerHTML = history.map(h => `
+                        <div class="border-bottom py-1">
+                            <span class="fw-bold">${h.recordedAt ? h.recordedAt.substring(0, 10) : ''}:</span>
+                            <span class="badge tooth-${h.previousCondition || 'HEALTHY'}">${formatCondition(h.previousCondition)}</span>
+                            &rarr;
+                            <span class="badge tooth-${h.newCondition}">${formatCondition(h.newCondition)}</span>
+                            <span class="text-muted">by ${h.performedBy || 'Staff'}</span>
+                            ${h.notes ? `<div class="text-muted fst-italic ms-2">${h.notes}</div>` : ''}
+                        </div>
+                    `).join('');
+                } else {
+                    historyList.innerHTML = '<em>No prior changes recorded.</em>';
+                }
+            } catch (e) {
+                historyList.innerHTML = '<em>Failed to load history.</em>';
+            }
+
+            toothModalInstance.show();
+        }
+
+        // ==========================================
+        // 2. CLINICAL RECORDS
+        // ==========================================
+        async function loadClinicalRecords() {
+            const container = document.getElementById('clinicalTimeline');
+            try {
+                const records = await apiRequest(`/clinical-records/patient/${patientId}`);
+                if (!records || records.length === 0) {
+                    container.innerHTML = '<div class="text-center py-4 text-muted">No clinical examination records found.</div>';
+                    return;
+                }
+
+                container.innerHTML = records.map(r => `
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <strong class="text-teal">${r.recordNumber}</strong>
+                                    <span class="text-muted ms-2"><i class="bi bi-calendar-event me-1"></i>${r.recordDate}</span>
+                                </div>
+                                <span class="badge bg-light text-dark">Dr. ${r.dentistName}</span>
+                            </div>
+                            <div class="mb-2">
+                                <span class="fw-bold text-dark">Chief Complaint:</span> ${escapeHtml(r.chiefComplaint)}
+                            </div>
+                            <div class="mb-2 text-secondary">
+                                <span class="fw-bold text-dark">Clinical Examination:</span> ${escapeHtml(r.examinationFindings)}
+                            </div>
+                            ${r.periodontalStatus ? `<div class="small mb-1"><strong>Periodontal:</strong> ${escapeHtml(r.periodontalStatus)}</div>` : ''}
+                            ${r.occlusion ? `<div class="small mb-1"><strong>Occlusion:</strong> ${escapeHtml(r.occlusion)}</div>` : ''}
+                            ${r.diagnosisNotes ? `<div class="small text-muted border-top pt-1 mt-2"><strong>Diagnosis Notes:</strong> ${escapeHtml(r.diagnosisNotes)}</div>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                container.innerHTML = `<div class="text-danger py-4">Failed to load clinical records: ${e.message}</div>`;
+            }
+        }
+
+        function openNewRecordModal() {
+            document.getElementById('clinicalRecordForm').reset();
+            document.getElementById('recordDate').value = new Date().toISOString().substring(0, 10);
+            clinicalRecordModalInstance.show();
+        }
+
+        // ==========================================
+        // 3. DIAGNOSES
+        // ==========================================
+        async function loadDiagnoses() {
+            const tbody = document.getElementById('diagnosesTableBody');
+            try {
+                const list = await apiRequest(`/diagnoses/patient/${patientId}`);
+                if (!list || list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No diagnoses recorded for this patient.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = list.map(d => `
+                    <tr>
+                        <td>${d.diagnosisDate || '—'}</td>
+                        <td>${d.toothNumber ? `<strong class="text-teal">#${d.toothNumber}</strong>` : '<span class="text-muted">General</span>'}</td>
+                        <td>${d.condition ? `<span class="badge tooth-${d.condition}">${formatCondition(d.condition)}</span>` : '—'}</td>
+                        <td>
+                            <div class="fw-bold">${escapeHtml(d.diagnosisName)}</div>
+                            <small class="text-muted">${escapeHtml(d.description || '')}</small>
+                        </td>
+                        <td><span class="badge ${d.severity === 'SEVERE' ? 'bg-danger' : d.severity === 'MODERATE' ? 'bg-warning text-dark' : 'bg-info text-dark'}">${d.severity}</span></td>
+                        <td><span class="badge bg-success">${d.status || 'ACTIVE'}</span></td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-danger py-4">Failed to load diagnoses: ${e.message}</td></tr>`;
+            }
+        }
+
+        function openNewDiagnosisModal() {
+            document.getElementById('diagnosisForm').reset();
+            diagnosisModalInstance.show();
+        }
+
+        // ==========================================
+        // 4. TREATMENT PLANS
+        // ==========================================
+        async function loadTreatmentPlans() {
+            const container = document.getElementById('treatmentPlansContainer');
+            try {
+                const plans = await apiRequest(`/treatment-plans/patient/${patientId}`);
+                if (!plans || plans.length === 0) {
+                    container.innerHTML = '<div class="text-center py-4 text-muted">No treatment plans recorded. Create one using the button above.</div>';
+                    return;
+                }
+
+                container.innerHTML = plans.map(plan => `
+                    <div class="card mb-3 border">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong class="text-teal">${plan.planNumber}</strong>: <span class="fw-bold">${escapeHtml(plan.title)}</span>
+                                <small class="text-muted ms-2">Dr. ${plan.dentistName} | ${plan.createdAt ? plan.createdAt.substring(0, 10) : ''}</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <select class="form-select form-select-sm" onchange="updatePlanStatus(${plan.id}, this.value)">
+                                    ${['DRAFT', 'PROPOSED', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'].map(s => 
+                                        `<option value="${s}" ${plan.status === s ? 'selected' : ''}>${s}</option>`
+                                    ).join('')}
+                                </select>
+                                <span class="badge bg-secondary">Total: LKR ${(plan.totalEstimatedCost || 0).toLocaleString()}</span>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <table class="table table-sm mb-0 align-middle">
+                                <thead class="table-light small">
+                                    <tr>
+                                        <th>Procedure</th>
+                                        <th>Tooth #</th>
+                                        <th>Qty</th>
+                                        <th>Unit Cost</th>
+                                        <th>Est. Cost</th>
+                                        <th>Status</th>
+                                        <th>Notes</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${(plan.items || []).map(item => `
+                                        <tr>
+                                            <td class="fw-semibold">${escapeHtml(item.treatmentName)}</td>
+                                            <td>${item.toothNumber ? `#${item.toothNumber}` : '—'}</td>
+                                            <td>${item.quantity}</td>
+                                            <td>LKR ${item.unitCost ? item.unitCost.toLocaleString() : 0}</td>
+                                            <td><strong>LKR ${item.estimatedCost ? item.estimatedCost.toLocaleString() : 0}</strong></td>
+                                            <td>
+                                                <select class="form-select form-select-sm" style="width: 120px;" onchange="updateItemStatus(${item.id}, this.value)">
+                                                    ${['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'].map(is => 
+                                                        `<option value="${is}" ${item.status === is ? 'selected' : ''}>${is}</option>`
+                                                    ).join('')}
+                                                </select>
+                                            </td>
+                                            <td class="small text-muted">${escapeHtml(item.notes || '—')}</td>
+                                            <td>
+                                                <button class="btn btn-outline-danger btn-sm py-0 px-1" onclick="deletePlanItem(${plan.id}, ${item.id})" title="Remove">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                container.innerHTML = `<div class="text-danger py-4">Failed to load treatment plans: ${e.message}</div>`;
+            }
+        }
+
+        function openNewPlanModal() {
+            document.getElementById('planForm').reset();
+            document.getElementById('planItemsTableBody').innerHTML = '';
+            addPlanItemRow();
+            planModalInstance.show();
+        }
+
+        function addPlanItemRow() {
+            const tbody = document.getElementById('planItemsTableBody');
+            const rowId = Date.now();
+            const tr = document.createElement('tr');
+            tr.id = `plan-row-${rowId}`;
+            tr.innerHTML = `
+                <td>
+                    <select class="form-select form-select-sm plan-treatment-select" required onchange="onPlanTreatmentSelect(this, '${rowId}')">
+                        <option value="">Select Treatment...</option>
+                        ${treatmentsList.map(t => `<option value="${t.id}" data-cost="${t.treatmentCost}">${t.treatmentName} (LKR ${t.treatmentCost.toLocaleString()})</option>`).join('')}
+                    </select>
+                </td>
+                <td><input type="number" min="11" max="48" class="form-control form-control-sm plan-tooth-input" placeholder="Tooth #"></td>
+                <td><input type="number" min="1" value="1" class="form-control form-control-sm plan-qty-input" required></td>
+                <td><input type="number" step="0.01" class="form-control form-control-sm plan-cost-input" id="plan-cost-${rowId}" placeholder="Cost" required></td>
+                <td><input type="text" class="form-control form-control-sm plan-notes-input" placeholder="Notes"></td>
+                <td><button type="button" class="btn btn-outline-danger btn-sm py-0 px-1" onclick="document.getElementById('plan-row-${rowId}').remove()"><i class="bi bi-trash"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function onPlanTreatmentSelect(selectEl, rowId) {
+            const selectedOpt = selectEl.options[selectEl.selectedIndex];
+            const cost = selectedOpt.getAttribute('data-cost');
+            const costInput = document.getElementById(`plan-cost-${rowId}`);
+            if (cost && costInput) {
+                costInput.value = cost;
+            }
+        }
+
+        async function updatePlanStatus(planId, status) {
+            try {
+                await apiRequest(`/treatment-plans/${planId}/status?status=${status}`, { method: 'PATCH' });
+                showNotification(`Plan status updated to ${status}`);
+                loadTreatmentPlans();
+            } catch (e) {
+                showNotification('Failed to update plan status: ' + e.message, 'error');
+            }
+        }
+
+        async function updateItemStatus(itemId, status) {
+            try {
+                await apiRequest(`/treatment-plans/items/${itemId}/status?status=${status}`, { method: 'PATCH' });
+                showNotification(`Item status updated to ${status}`);
+            } catch (e) {
+                showNotification('Failed to update item status: ' + e.message, 'error');
+            }
+        }
+
+        async function deletePlanItem(planId, itemId) {
+            if (!confirm('Are you sure you want to remove this item?')) return;
+            try {
+                await apiRequest(`/treatment-plans/${planId}/items/${itemId}`, { method: 'DELETE' });
+                showNotification('Item removed');
+                loadTreatmentPlans();
+            } catch (e) {
+                showNotification('Failed to remove item: ' + e.message, 'error');
+            }
+        }
+
+        // ==========================================
+        // 5. PRESCRIPTIONS
+        // ==========================================
+        async function loadPrescriptions() {
+            const tbody = document.getElementById('prescriptionsTableBody');
+            try {
+                const list = await apiRequest(`/prescriptions/patient/${patientId}`);
+                if (!list || list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No prescriptions issued yet.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = list.map(rx => `
+                    <tr>
+                        <td><strong class="text-teal">${rx.prescriptionNumber}</strong></td>
+                        <td>${rx.prescriptionDate || '—'}</td>
+                        <td>Dr. ${rx.dentistName}</td>
+                        <td>
+                            <ul class="list-unstyled mb-0 small">
+                                ${(rx.items || []).map(i => `
+                                    <li><strong>${escapeHtml(i.medicationName)}</strong> - ${i.dosage} | ${i.frequency} | ${i.duration}</li>
+                                `).join('')}
+                            </ul>
+                        </td>
+                        <td class="small text-muted">${escapeHtml(rx.notes || '—')}</td>
+                        <td>
+                            <button class="btn btn-outline-teal btn-sm" onclick='openPrintRxModal(${JSON.stringify(rx)})'>
+                                <i class="bi bi-printer me-1"></i> Print Rx
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-danger py-4">Failed to load prescriptions: ${e.message}</td></tr>`;
+            }
+        }
+
+        function openNewRxModal() {
+            document.getElementById('rxForm').reset();
+            document.getElementById('rxDate').value = new Date().toISOString().substring(0, 10);
+            document.getElementById('rxItemsTableBody').innerHTML = '';
+            addRxItemRow();
+            rxModalInstance.show();
+        }
+
+        function addRxItemRow() {
+            const tbody = document.getElementById('rxItemsTableBody');
+            const rowId = Date.now();
+            const tr = document.createElement('tr');
+            tr.id = `rx-row-${rowId}`;
+            tr.innerHTML = `
+                <td>
+                    <select class="form-select form-select-sm rx-med-select" required onchange="onMedicationSelect(this, '${rowId}')">
+                        <option value="">Select Drug...</option>
+                        ${medicationsList.map(m => `<option value="${m.id}" data-instructions="${m.standardInstructions || ''}" data-name="${m.name}">${m.name} (${m.dosageForm} - ${m.strength})</option>`).join('')}
+                    </select>
+                </td>
+                <td><input type="text" class="form-control form-control-sm rx-dosage" placeholder="e.g. 500mg" required></td>
+                <td><input type="text" class="form-control form-control-sm rx-frequency" placeholder="e.g. TDS (3x/day)" required></td>
+                <td><input type="text" class="form-control form-control-sm rx-duration" placeholder="e.g. 5 Days" required></td>
+                <td><input type="text" class="form-control form-control-sm rx-instructions" id="rx-inst-${rowId}" placeholder="e.g. After meals"></td>
+                <td><button type="button" class="btn btn-outline-danger btn-sm py-0 px-1" onclick="document.getElementById('rx-row-${rowId}').remove()"><i class="bi bi-trash"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function onMedicationSelect(selectEl, rowId) {
+            const selectedOpt = selectEl.options[selectEl.selectedIndex];
+            const inst = selectedOpt.getAttribute('data-instructions');
+            const instInput = document.getElementById(`rx-inst-${rowId}`);
+            if (inst && instInput && !instInput.value) {
+                instInput.value = inst;
+            }
+        }
+
+        function openPrintRxModal(rx) {
+            const container = document.getElementById('rxPrintContent');
+            container.innerHTML = `
+                <div class="rx-container">
+                    <div class="rx-header">
+                        <div>
+                            <h2 class="fw-bold text-dark mb-0"><i class="bi bi-heart-pulse-fill text-teal me-2"></i>Sunrise Dental Clinic</h2>
+                            <p class="text-muted mb-0 small">No. 120, Galle Road, Colombo 03 | Tel: +94 11 234 5678</p>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold text-teal">${rx.prescriptionNumber}</div>
+                            <small class="text-muted">Date: ${rx.prescriptionDate}</small>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3 pb-2 border-bottom small">
+                        <div class="col-6">
+                            <strong>Patient:</strong> ${patientData.fullName} (${patientData.patientNumber})<br>
+                            <strong>Age / Gender:</strong> ${patientData.dateOfBirth} | ${patientData.gender}
+                        </div>
+                        <div class="col-6 text-end">
+                            <strong>Prescribed By:</strong> Dr. ${rx.dentistName}<br>
+                            <strong>Clinic License:</strong> SLMC-DENT-2026
+                        </div>
+                    </div>
+
+                    <div class="rx-symbol">℞</div>
+
+                    <table class="rx-med-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Medication & Form</th>
+                                <th>Dosage</th>
+                                <th>Frequency</th>
+                                <th>Duration</th>
+                                <th>Instructions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${(rx.items || []).map((item, idx) => `
+                                <tr>
+                                    <td>${idx + 1}</td>
+                                    <td><strong>${escapeHtml(item.medicationName)}</strong></td>
+                                    <td>${escapeHtml(item.dosage)}</td>
+                                    <td>${escapeHtml(item.frequency)}</td>
+                                    <td>${escapeHtml(item.duration)}</td>
+                                    <td>${escapeHtml(item.instructions || '—')}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+
+                    ${rx.notes ? `<div class="p-2 bg-light rounded small mb-4"><strong>Special Instructions:</strong> ${escapeHtml(rx.notes)}</div>` : ''}
+
+                    <div class="rx-footer">
+                        <div class="small text-muted">
+                            <em>Valid for 14 days from issue date. Sunrise Dental Official Prescription.</em>
+                        </div>
+                        <div class="signature-line">
+                            Dr. ${rx.dentistName}<br>
+                            <small>Registered Dental Surgeon</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            rxPrintModalInstance.show();
+        }
+
+        // ==========================================
+        // 6. DOCUMENTS & X-RAYS
+        // ==========================================
+        async function loadDocuments() {
+            const tbody = document.getElementById('documentsTableBody');
+            try {
+                const docs = await apiRequest(`/documents/patient/${patientId}`);
+                if (!docs || docs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No documents or X-Rays uploaded yet.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = docs.map(d => `
+                    <tr>
+                        <td><strong>${escapeHtml(d.title)}</strong>${d.notes ? `<div class="small text-muted">${escapeHtml(d.notes)}</div>` : ''}</td>
+                        <td><span class="badge ${d.documentType === 'XRAY' ? 'bg-primary' : 'bg-secondary'}">${d.documentType}</span></td>
+                        <td><small>${escapeHtml(d.fileName)}</small></td>
+                        <td><small>${(d.fileSize / 1024).toFixed(1)} KB</small></td>
+                        <td>${d.uploadDate ? d.uploadDate.substring(0, 10) : '—'}</td>
+                        <td><small>${escapeHtml(d.uploadedBy || 'Staff')}</small></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="/api/documents/${d.id}/download" class="btn btn-outline-teal" download title="Download File">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                                <button class="btn btn-outline-danger" onclick="deleteDocument(${d.id})" title="Delete File">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-danger py-4">Failed to load documents: ${e.message}</td></tr>`;
+            }
+        }
+
+        function openUploadDocModal() {
+            document.getElementById('docForm').reset();
+            docModalInstance.show();
+        }
+
+        async function deleteDocument(docId) {
+            if (!confirm('Are you sure you want to delete this document?')) return;
+            try {
+                await apiRequest(`/documents/${docId}`, { method: 'DELETE' });
+                showNotification('Document deleted');
+                loadDocuments();
+            } catch (e) {
+                showNotification('Failed to delete document: ' + e.message, 'error');
+            }
+        }
+
+        // ==========================================
+        // 7. APPOINTMENTS
+        // ==========================================
+        async function loadAppointments() {
+            const tbody = document.getElementById('appointmentsTableBody');
+            try {
+                const appts = await apiRequest(`/patients/${patientId}/appointments`);
+                if (!appts || appts.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No appointments found for this patient.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = appts.map(a => `
+                    <tr>
+                        <td><strong>${a.appointmentNumber}</strong></td>
+                        <td>${a.tokenNumber ? `<span class="badge bg-dark text-info">${a.tokenNumber}</span>` : '—'}</td>
+                        <td>${a.appointmentDate} ${a.appointmentTime}</td>
+                        <td>Dr. ${a.dentistName}</td>
+                        <td>${a.treatmentName}</td>
+                        <td><span class="badge bg-light text-dark">${a.status}</span></td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-danger py-4">Failed to load appointments: ${e.message}</td></tr>`;
+            }
+        }
+
+        // ==========================================
+        // FORM SUBMISSION HANDLERS
+        // ==========================================
+        function setupForms() {
+            // Tooth Update
+            document.getElementById('toothForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const toothNumber = parseInt(document.getElementById('toothNumber').value);
+                const condition = document.getElementById('toothConditionSelect').value;
+                const notes = document.getElementById('toothNotes').value;
+
+                try {
+                    await apiRequest('/dental-chart/tooth', {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            patientId: parseInt(patientId),
+                            toothNumber: toothNumber,
+                            condition: condition,
+                            notes: notes
+                        })
+                    });
+                    showNotification(`Tooth #${toothNumber} updated to ${condition}`);
+                    toothModalInstance.hide();
+                    loadDentalChart();
+                } catch (err) {
+                    showNotification('Failed to update tooth: ' + err.message, 'error');
+                }
+            });
+
+            // Clinical Record
+            document.getElementById('clinicalRecordForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const payload = {
+                    patientId: parseInt(patientId),
+                    dentistId: parseInt(document.getElementById('recordDentistSelect').value),
+                    recordDate: document.getElementById('recordDate').value,
+                    chiefComplaint: document.getElementById('recordChiefComplaint').value,
+                    examinationFindings: document.getElementById('recordFindings').value,
+                    periodontalStatus: document.getElementById('recordPeriodontal').value,
+                    occlusion: document.getElementById('recordOcclusion').value,
+                    diagnosisNotes: document.getElementById('recordDiagnosisNotes').value
+                };
+
+                try {
+                    await apiRequest('/clinical-records', {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    showNotification('Clinical examination record saved successfully');
+                    clinicalRecordModalInstance.hide();
+                    loadClinicalRecords();
+                } catch (err) {
+                    showNotification('Failed to save clinical record: ' + err.message, 'error');
+                }
+            });
+
+            // Diagnosis
+            document.getElementById('diagnosisForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const toothNum = document.getElementById('diagToothNumber').value;
+                const cond = document.getElementById('diagCondition').value;
+                const payload = {
+                    patientId: parseInt(patientId),
+                    diagnosisName: document.getElementById('diagName').value,
+                    toothNumber: toothNum ? parseInt(toothNum) : null,
+                    condition: cond ? cond : null,
+                    severity: document.getElementById('diagSeverity').value,
+                    description: document.getElementById('diagDescription').value
+                };
+
+                try {
+                    await apiRequest('/diagnoses', {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    showNotification('Diagnosis recorded successfully');
+                    diagnosisModalInstance.hide();
+                    loadDiagnoses();
+                } catch (err) {
+                    showNotification('Failed to save diagnosis: ' + err.message, 'error');
+                }
+            });
+
+            // Treatment Plan
+            document.getElementById('planForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const rows = document.querySelectorAll('#planItemsTableBody tr');
+                const items = [];
+                for (let r of rows) {
+                    const treatmentId = r.querySelector('.plan-treatment-select').value;
+                    const toothNum = r.querySelector('.plan-tooth-input').value;
+                    const qty = r.querySelector('.plan-qty-input').value;
+                    const cost = r.querySelector('.plan-cost-input').value;
+                    const notes = r.querySelector('.plan-notes-input').value;
+                    if (treatmentId) {
+                        items.push({
+                            treatmentId: parseInt(treatmentId),
+                            toothNumber: toothNum ? parseInt(toothNum) : null,
+                            quantity: parseInt(qty) || 1,
+                            unitCost: parseFloat(cost) || 0,
+                            notes: notes
+                        });
+                    }
+                }
+
+                const payload = {
+                    patientId: parseInt(patientId),
+                    dentistId: parseInt(document.getElementById('planDentistSelect').value),
+                    title: document.getElementById('planTitle').value,
+                    notes: document.getElementById('planNotes').value,
+                    items: items
+                };
+
+                try {
+                    await apiRequest('/treatment-plans', {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    showNotification('Treatment plan created successfully');
+                    planModalInstance.hide();
+                    loadTreatmentPlans();
+                } catch (err) {
+                    showNotification('Failed to save treatment plan: ' + err.message, 'error');
+                }
+            });
+
+            // Prescription
+            document.getElementById('rxForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const rows = document.querySelectorAll('#rxItemsTableBody tr');
+                const items = [];
+                for (let r of rows) {
+                    const medSelect = r.querySelector('.rx-med-select');
+                    const medId = medSelect.value;
+                    const medName = medSelect.options[medSelect.selectedIndex].getAttribute('data-name');
+                    const dosage = r.querySelector('.rx-dosage').value;
+                    const freq = r.querySelector('.rx-frequency').value;
+                    const dur = r.querySelector('.rx-duration').value;
+                    const inst = r.querySelector('.rx-instructions').value;
+
+                    if (medId) {
+                        items.push({
+                            medicationId: parseInt(medId),
+                            medicationName: medName,
+                            dosage: dosage,
+                            frequency: freq,
+                            duration: dur,
+                            instructions: inst
+                        });
+                    }
+                }
+
+                const payload = {
+                    patientId: parseInt(patientId),
+                    dentistId: parseInt(document.getElementById('rxDentistSelect').value),
+                    prescriptionDate: document.getElementById('rxDate').value,
+                    notes: document.getElementById('rxNotes').value,
+                    items: items
+                };
+
+                try {
+                    await apiRequest('/prescriptions', {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    showNotification('Prescription issued successfully');
+                    rxModalInstance.hide();
+                    loadPrescriptions();
+                } catch (err) {
+                    showNotification('Failed to issue prescription: ' + err.message, 'error');
+                }
+            });
+
+            // Document Upload (Multipart)
+            document.getElementById('docForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const fileInput = document.getElementById('docFile');
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    alert('Please select a file to upload.');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                formData.append('patientId', patientId);
+                formData.append('title', document.getElementById('docTitle').value);
+                formData.append('documentType', document.getElementById('docType').value);
+                formData.append('notes', document.getElementById('docNotes').value);
+
+                try {
+                    const user = getSession();
+                    const headers = {};
+                    if (user && user.token) {
+                        headers['Authorization'] = `Bearer ${user.token}`;
+                    }
+
+                    const res = await fetch('/api/documents/upload', {
+                        method: 'POST',
+                        headers: headers,
+                        body: formData
+                    });
+
+                    if (!res.ok) {
+                        const data = await res.json().catch(() => ({}));
+                        throw new Error(data.message || 'Upload failed');
+                    }
+
+                    showNotification('Document uploaded successfully');
+                    docModalInstance.hide();
+                    loadDocuments();
+                } catch (err) {
+                    showNotification('Failed to upload document: ' + err.message, 'error');
+                }
+            });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>

@@ -16,15 +16,20 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.sunrise.dental.dto.response.NoShowRiskResponse;
+import com.sunrise.dental.service.NoShowPredictionService;
+
 @RestController
 @RequestMapping("/api/appointments")
 @Tag(name = "Appointment Management", description = "Appointment booking, atomic double-booking conflict prevention, search, and lifecycle status tracking")
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
+    private final NoShowPredictionService noShowPredictionService;
 
-    public AppointmentController(AppointmentService appointmentService) {
+    public AppointmentController(AppointmentService appointmentService, NoShowPredictionService noShowPredictionService) {
         this.appointmentService = appointmentService;
+        this.noShowPredictionService = noShowPredictionService;
     }
 
     @PostMapping
@@ -87,5 +92,42 @@ public class AppointmentController {
     @Operation(summary = "List today's scheduled appointments for active clinical roster")
     public ResponseEntity<List<AppointmentResponse>> getTodayAppointments() {
         return ResponseEntity.ok(appointmentService.getTodayAppointments());
+    }
+
+    @GetMapping("/queue/today")
+    @Operation(summary = "Get daily appointment queue with token numbers and active waiting/treatment status")
+    public ResponseEntity<List<AppointmentResponse>> getDailyQueue(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ResponseEntity.ok(appointmentService.getDailyQueue(date != null ? date : LocalDate.now()));
+    }
+
+    @PostMapping("/{id}/queue/call")
+    @Operation(summary = "Call patient from waiting area (sets status to CALLED)")
+    public ResponseEntity<AppointmentResponse> callPatient(@PathVariable Long id) {
+        return ResponseEntity.ok(appointmentService.callPatient(id));
+    }
+
+    @PostMapping("/{id}/queue/start")
+    @Operation(summary = "Start dental treatment session in chair (sets status to IN_TREATMENT)")
+    public ResponseEntity<AppointmentResponse> startTreatment(@PathVariable Long id) {
+        return ResponseEntity.ok(appointmentService.startTreatment(id));
+    }
+
+    @PostMapping("/{id}/queue/complete")
+    @Operation(summary = "Complete clinical visit (sets status to COMPLETED)")
+    public ResponseEntity<AppointmentResponse> completeVisit(@PathVariable Long id) {
+        return ResponseEntity.ok(appointmentService.completeVisit(id));
+    }
+
+    @PostMapping("/{id}/queue/no-show")
+    @Operation(summary = "Mark patient as no-show (sets status to NO_SHOW)")
+    public ResponseEntity<AppointmentResponse> markNoShow(@PathVariable Long id) {
+        return ResponseEntity.ok(appointmentService.markNoShow(id));
+    }
+
+    @GetMapping("/{id}/no-show-risk")
+    @Operation(summary = "Calculate AI/ML-ready no-show risk probability and contributing factors (decision-support estimate)")
+    public ResponseEntity<NoShowRiskResponse> getNoShowRisk(@PathVariable Long id) {
+        return ResponseEntity.ok(noShowPredictionService.assessNoShowRisk(id));
     }
 }

@@ -49,4 +49,15 @@ public class AuthController {
     public ResponseEntity<User> updateUserStatus(@PathVariable Long id, @RequestParam boolean active) {
         return ResponseEntity.ok(authService.updateUserStatus(id, active));
     }
+
+    @PostMapping("/change-password")
+    @Operation(summary = "Securely change authenticated user password")
+    public ResponseEntity<Map<String, String>> changePassword(
+            @Valid @RequestBody com.sunrise.dental.dto.request.ChangePasswordRequest request,
+            org.springframework.security.core.Authentication authentication) {
+        String username = (authentication != null && authentication.getName() != null)
+                ? authentication.getName() : request.getUsername();
+        authService.changePassword(username, request.getCurrentPassword(), request.getNewPassword());
+        return ResponseEntity.ok(Map.of("message", "Password changed successfully."));
+    }
 }

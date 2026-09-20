@@ -23,13 +23,23 @@ public class AuditServiceImpl implements AuditService {
 
     @Override
     public void logAction(String username, String action, String entityName, String entityId, String details) {
+        logAction(username, action, entityName, entityId, details, null, null, null, null);
+    }
+
+    @Override
+    public void logAction(String username, String action, String entityName, String entityId, String details,
+                          String oldValue, String newValue, String ipAddress, String userAgent) {
         try {
             AuditLog log = new AuditLog(
                     username != null ? username : "SYSTEM",
                     action,
                     entityName,
                     entityId,
-                    details
+                    details,
+                    oldValue,
+                    newValue,
+                    ipAddress,
+                    userAgent
             );
             auditLogRepository.save(log);
             logger.info("AUDIT [{}] - {} on {} [ID: {}]: {}", username, action, entityName, entityId, details);

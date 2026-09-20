@@ -23,13 +23,16 @@
             <div class="sidebar-nav">
                 <div class="nav-section-title">Operations</div>
                 <a href="dashboard.html" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                <a href="queue.html" class="sidebar-link"><i class="bi bi-people-fill"></i> Daily Queue & Tokens</a>
                 <a href="appointments.html" class="sidebar-link"><i class="bi bi-calendar-check"></i> Appointments</a>
                 <a href="patients.html" class="sidebar-link active"><i class="bi bi-people"></i> Patients</a>
                 <a href="billing.html" class="sidebar-link receptionist-only"><i class="bi bi-receipt"></i> Billing & Payments</a>
 
-                <div class="nav-section-title">Clinical & Catalog</div>
+                <div class="nav-section-title">Clinical & Workspace</div>
+                <a href="dentist-workspace.html" class="sidebar-link"><i class="bi bi-hospital"></i> Dentist Workspace</a>
                 <a href="dentists.html" class="sidebar-link"><i class="bi bi-person-badge"></i> Dentists</a>
                 <a href="treatments.html" class="sidebar-link"><i class="bi bi-journal-medical"></i> Treatments</a>
+                <a href="inventory.html" class="sidebar-link"><i class="bi bi-boxes"></i> Inventory & Supplies</a>
 
                 <div class="nav-section-title">Management & Support</div>
                 <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-line"></i> Reports & Analytics</a>
@@ -244,6 +247,9 @@
                         <td><span class="badge bg-light text-dark">${p.gender}</span></td>
                         <td>
                             <div class="btn-group btn-group-sm">
+                                <a href="patient-profile.html?id=${p.id}" class="btn btn-outline-teal" title="360° Patient Profile & FDI Tooth Chart">
+                                    <i class="bi bi-person-vcard"></i>
+                                </a>
                                 <button class="btn btn-outline-teal" onclick='openEditPatientModal(${JSON.stringify(p)})' title="Edit Profile">
                                     <i class="bi bi-pencil"></i>
                                 </button>

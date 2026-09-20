@@ -26,6 +26,18 @@ public class AuditLog {
     @Column(columnDefinition = "TEXT")
     private String details;
 
+    @Column(name = "old_value", columnDefinition = "TEXT")
+    private String oldValue;
+
+    @Column(name = "new_value", columnDefinition = "TEXT")
+    private String newValue;
+
+    @Column(name = "ip_address", length = 50)
+    private String ipAddress;
+
+    @Column(name = "user_agent")
+    private String userAgent;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime timestamp;
 
@@ -38,6 +50,19 @@ public class AuditLog {
         this.entityName = entityName;
         this.entityId = entityId;
         this.details = details;
+    }
+
+    public AuditLog(String username, String action, String entityName, String entityId, String details,
+                    String oldValue, String newValue, String ipAddress, String userAgent) {
+        this.username = username;
+        this.action = action;
+        this.entityName = entityName;
+        this.entityId = entityId;
+        this.details = details;
+        this.oldValue = oldValue;
+        this.newValue = newValue;
+        this.ipAddress = ipAddress;
+        this.userAgent = userAgent;
     }
 
     @PrePersist
@@ -93,6 +118,38 @@ public class AuditLog {
 
     public void setDetails(String details) {
         this.details = details;
+    }
+
+    public String getOldValue() {
+        return oldValue;
+    }
+
+    public void setOldValue(String oldValue) {
+        this.oldValue = oldValue;
+    }
+
+    public String getNewValue() {
+        return newValue;
+    }
+
+    public void setNewValue(String newValue) {
+        this.newValue = newValue;
+    }
+
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
+    }
+
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
     }
 
     public LocalDateTime getTimestamp() {

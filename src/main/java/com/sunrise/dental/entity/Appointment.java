@@ -17,6 +17,9 @@ public class Appointment {
     @Column(name = "appointment_number", nullable = false, unique = true, length = 30)
     private String appointmentNumber;
 
+    @Column(name = "token_number", length = 10)
+    private String tokenNumber;
+
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
@@ -91,6 +94,14 @@ public class Appointment {
 
     public void setAppointmentNumber(String appointmentNumber) {
         this.appointmentNumber = appointmentNumber;
+    }
+
+    public String getTokenNumber() {
+        return tokenNumber;
+    }
+
+    public void setTokenNumber(String tokenNumber) {
+        this.tokenNumber = tokenNumber;
     }
 
     public Patient getPatient() {

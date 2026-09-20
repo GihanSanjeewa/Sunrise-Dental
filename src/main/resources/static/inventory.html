@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory & Supplies - Sunrise Dental Clinic</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+                <div class="sidebar-brand-text">
+                    <h5>Sunrise Dental</h5>
+                    <small>Colombo Center</small>
+                </div>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-section-title">Operations</div>
+                <a href="dashboard.html" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                <a href="queue.html" class="sidebar-link"><i class="bi bi-people-fill"></i> Daily Queue & Tokens</a>
+                <a href="appointments.html" class="sidebar-link"><i class="bi bi-calendar-check"></i> Appointments</a>
+                <a href="patients.html" class="sidebar-link"><i class="bi bi-people"></i> Patients</a>
+                <a href="billing.html" class="sidebar-link receptionist-only"><i class="bi bi-receipt"></i> Billing & Payments</a>
+
+                <div class="nav-section-title">Clinical & Workspace</div>
+                <a href="dentist-workspace.html" class="sidebar-link"><i class="bi bi-hospital"></i> Dentist Workspace</a>
+                <a href="dentists.html" class="sidebar-link"><i class="bi bi-person-badge"></i> Dentists</a>
+                <a href="treatments.html" class="sidebar-link"><i class="bi bi-journal-medical"></i> Treatments</a>
+                <a href="inventory.html" class="sidebar-link active"><i class="bi bi-boxes"></i> Inventory & Supplies</a>
+
+                <div class="nav-section-title">Management & Support</div>
+                <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-line"></i> Reports & Analytics</a>
+                <a href="help.html" class="sidebar-link"><i class="bi bi-question-circle"></i> Staff Help Guide</a>
+                <a href="users.html" class="sidebar-link admin-only"><i class="bi bi-shield-lock"></i> User Accounts</a>
+            </div>
+            <div class="sidebar-user">
+                <div class="user-badge mb-2">
+                    <div class="user-avatar" id="currentUserAvatar">U</div>
+                    <div class="user-info">
+                        <div class="user-name" id="currentUserName">Loading...</div>
+                        <div class="user-role" id="currentUserRole">STAFF</div>
+                    </div>
+                </div>
+                <button onclick="handleLogout()" class="btn btn-outline-light btn-sm w-100 py-1">
+                    <i class="bi bi-box-arrow-right me-1"></i> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <div class="page-title">
+                    <h1>Inventory & Supply Chain</h1>
+                    <p>Dental consumables, real-time stock levels, low-stock threshold alerts, and purchase orders</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-teal" onclick="openNewSupplierModal()">
+                        <i class="bi bi-truck me-1"></i> Add Supplier
+                    </button>
+                    <button class="btn btn-outline-teal" onclick="openNewPoModal()">
+                        <i class="bi bi-cart-plus me-1"></i> Create Purchase Order
+                    </button>
+                    <button class="btn btn-teal" onclick="openNewItemModal()">
+                        <i class="bi bi-box-seam me-1"></i> Add Consumable Item
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stat Counters -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-value" id="statTotalItems">0</div>
+                        <div class="stat-label">Total Consumable SKUs</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card" style="border-left: 4px solid #ef4444;">
+                        <div class="stat-value text-danger" id="statLowStockCount">0</div>
+                        <div class="stat-label">Low Stock Alerts (At / Below Threshold)</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card" style="border-left: 4px solid var(--primary-teal);">
+                        <div class="stat-value text-teal" id="statTotalValue">LKR 0</div>
+                        <div class="stat-label">Total Inventory Valuation</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs: Consumables / Suppliers / Purchase Orders -->
+            <ul class="nav nav-tabs mb-4" id="invTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active fw-semibold" id="tab-items-btn" data-bs-toggle="tab" data-bs-target="#tab-items" type="button">
+                        <i class="bi bi-boxes me-1 text-teal"></i> Consumable Stock
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-semibold" id="tab-pos-btn" data-bs-toggle="tab" data-bs-target="#tab-pos" type="button">
+                        <i class="bi bi-cart-check me-1 text-teal"></i> Purchase Orders & Goods Receipt
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-semibold" id="tab-suppliers-btn" data-bs-toggle="tab" data-bs-target="#tab-suppliers" type="button">
+                        <i class="bi bi-truck me-1 text-teal"></i> Registered Suppliers
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="invTabContent">
+                <!-- 1. CONSUMABLE ITEMS TAB -->
+                <div class="tab-pane fade show active" id="tab-items" role="tabpanel">
+                    <div class="card-custom">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-box-seam me-2 text-teal"></i>Dental Consumables Inventory</h5>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="loadItems()">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-custom align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Item Code</th>
+                                            <th>Item Name</th>
+                                            <th>Category</th>
+                                            <th>Stock Quantity</th>
+                                            <th>Unit</th>
+                                            <th>Reorder Level</th>
+                                            <th>Unit Cost</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="itemsTableBody">
+                                        <tr><td colspan="9" class="text-center py-4 text-muted">Loading inventory items...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. PURCHASE ORDERS TAB -->
+                <div class="tab-pane fade" id="tab-pos" role="tabpanel">
+                    <div class="card-custom">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-0"><i class="bi bi-cart-check me-2 text-teal"></i>Purchase Orders</h5>
+                                <small class="text-muted">Setting PO status to RECEIVED automatically increments inventory stock</small>
+                            </div>
+                            <button class="btn btn-teal btn-sm" onclick="openNewPoModal()">
+                                <i class="bi bi-plus-lg me-1"></i> New PO
+                            </button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-custom align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>PO #</th>
+                                            <th>Supplier</th>
+                                            <th>Order Date</th>
+                                            <th>Expected Delivery</th>
+                                            <th>Total Amount</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="posTableBody">
+                                        <tr><td colspan="7" class="text-center py-4 text-muted">Loading purchase orders...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. SUPPLIERS TAB -->
+                <div class="tab-pane fade" id="tab-suppliers" role="tabpanel">
+                    <div class="card-custom">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-truck me-2 text-teal"></i>Approved Dental Suppliers</h5>
+                            <button class="btn btn-teal btn-sm" onclick="openNewSupplierModal()">
+                                <i class="bi bi-plus-lg me-1"></i> New Supplier
+                            </button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-custom align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Supplier Code</th>
+                                            <th>Company Name</th>
+                                            <th>Contact Person</th>
+                                            <th>Phone</th>
+                                            <th>Email</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="suppliersTableBody">
+                                        <tr><td colspan="6" class="text-center py-4 text-muted">Loading suppliers...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL: Add Consumable Item -->
+    <div class="modal fade" id="itemModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="itemModalTitle"><i class="bi bi-box-seam text-teal me-2"></i>Add Consumable Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="itemForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="itemEditId">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label fw-semibold small">Item Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="itemName" placeholder="e.g. Composite Resin A2" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small">Category <span class="text-danger">*</span></label>
+                                <select class="form-select" id="itemCategory" required>
+                                    <option value="RESTORATIVE">Restorative</option>
+                                    <option value="ANESTHESIA">Anesthesia</option>
+                                    <option value="INFECTION_CONTROL">Infection Control</option>
+                                    <option value="ENDODONTICS">Endodontics</option>
+                                    <option value="SURGERY">Surgery</option>
+                                    <option value="DISPOSABLE">Disposable</option>
+                                    <option value="GENERAL">General</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small">Unit of Measure <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="itemUnit" placeholder="e.g. Syringe, Box, Vial" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small">Initial Quantity <span class="text-danger">*</span></label>
+                                <input type="number" min="0" class="form-control" id="itemQuantity" value="10" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small">Reorder Threshold <span class="text-danger">*</span></label>
+                                <input type="number" min="1" class="form-control" id="itemReorderLevel" value="5" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Unit Cost Price (LKR)</label>
+                                <input type="number" step="0.01" class="form-control" id="itemCostPrice" placeholder="e.g. 4500.00">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Default Supplier</label>
+                                <select class="form-select" id="itemSupplierSelect"></select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small">Description</label>
+                                <textarea class="form-control" id="itemDescription" rows="2" placeholder="Item specifications..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-teal"><i class="bi bi-save me-1"></i> Save Item</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Stock Adjustment -->
+    <div class="modal fade" id="adjustModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-sliders text-teal me-2"></i>Adjust Stock Level</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="adjustForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="adjustItemId">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Item</label>
+                            <input type="text" class="form-control bg-light" id="adjustItemName" readonly>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Adjustment Type <span class="text-danger">*</span></label>
+                                <select class="form-select" id="adjustType" required>
+                                    <option value="USAGE">USAGE (Deduct)</option>
+                                    <option value="WASTAGE">WASTAGE / EXPIRED (Deduct)</option>
+                                    <option value="RETURN">RETURN (Add)</option>
+                                    <option value="ADJUSTMENT">MANUAL AUDIT (Set/Adjust)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Quantity Change <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="adjustQty" placeholder="e.g. 5 or -2" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Reason / Notes</label>
+                            <textarea class="form-control" id="adjustNotes" rows="2" placeholder="Clinical procedure usage, damaged seal, etc."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-teal"><i class="bi bi-check2 me-1"></i> Apply Adjustment</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Stock History -->
+    <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="historyModalTitle"><i class="bi bi-clock-history text-teal me-2"></i>Stock Movement History</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-custom mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Type</th>
+                                    <th>Quantity</th>
+                                    <th>Performed By</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Add Supplier -->
+    <div class="modal fade" id="supplierModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-truck text-teal me-2"></i>Add Dental Supplier</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="supplierForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Supplier Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="suppName" placeholder="e.g. Ceylon Dental Supplies" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Contact Person</label>
+                            <input type="text" class="form-control" id="suppContactPerson" placeholder="e.g. Ruwan Silva">
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Phone Number <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="suppPhone" placeholder="e.g. 0112345678" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Email Address</label>
+                                <input type="email" class="form-control" id="suppEmail" placeholder="e.g. info@ceylondental.lk">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Address</label>
+                            <textarea class="form-control" id="suppAddress" rows="2" placeholder="Office / Warehouse address"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-teal"><i class="bi bi-save me-1"></i> Save Supplier</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Create Purchase Order -->
+    <div class="modal fade" id="poModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-cart-plus text-teal me-2"></i>Create Purchase Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="poForm">
+                    <div class="modal-body">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Supplier <span class="text-danger">*</span></label>
+                                <select class="form-select" id="poSupplierSelect" required></select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Expected Delivery Date</label>
+                                <input type="date" class="form-control" id="poExpectedDate">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small">Order Notes / Instructions</label>
+                                <textarea class="form-control" id="poNotes" rows="2" placeholder="Urgent order, batch specifications..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="border-top pt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold small mb-0">Order Line Items</h6>
+                                <button type="button" class="btn btn-outline-teal btn-sm" onclick="addPoItemRow()">
+                                    <i class="bi bi-plus-circle me-1"></i> Add Line
+                                </button>
+                            </div>
+                            <table class="table table-sm table-bordered align-middle" id="poItemsTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Item</th>
+                                        <th style="width: 100px;">Quantity</th>
+                                        <th style="width: 140px;">Unit Cost (LKR)</th>
+                                        <th style="width: 40px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="poItemsTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-teal"><i class="bi bi-save me-1"></i> Create PO</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        let allItems = [];
+        let allSuppliers = [];
+        let itemModalInstance;
+        let adjustModalInstance;
+        let historyModalInstance;
+        let supplierModalInstance;
+        let poModalInstance;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = checkAuth();
+            if (!user) return;
+
+            itemModalInstance = new bootstrap.Modal(document.getElementById('itemModal'));
+            adjustModalInstance = new bootstrap.Modal(document.getElementById('adjustModal'));
+            historyModalInstance = new bootstrap.Modal(document.getElementById('historyModal'));
+            supplierModalInstance = new bootstrap.Modal(document.getElementById('supplierModal'));
+            poModalInstance = new bootstrap.Modal(document.getElementById('poModal'));
+
+            await loadSuppliers();
+            await loadItems();
+            await loadPurchaseOrders();
+
+            setupForms();
+        });
+
+        async function loadItems() {
+            const tbody = document.getElementById('itemsTableBody');
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-teal me-2"></div>Loading items...</td></tr>';
+
+            try {
+                allItems = await apiRequest('/inventory/items');
+                document.getElementById('statTotalItems').textContent = allItems.length;
+
+                let lowStockCount = 0;
+                let totalValue = 0;
+
+                allItems.forEach(i => {
+                    if (i.quantity <= i.reorderLevel) lowStockCount++;
+                    if (i.costPrice && i.quantity) totalValue += (i.costPrice * i.quantity);
+                });
+
+                document.getElementById('statLowStockCount').textContent = lowStockCount;
+                document.getElementById('statTotalValue').textContent = `LKR ${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+                if (allItems.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">No consumable items registered.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = allItems.map(i => {
+                    const isLow = i.quantity <= i.reorderLevel;
+                    const statusBadge = i.quantity === 0
+                        ? '<span class="badge bg-danger">OUT OF STOCK</span>'
+                        : isLow
+                        ? '<span class="badge bg-warning text-dark">LOW STOCK</span>'
+                        : '<span class="badge bg-success">IN STOCK</span>';
+
+                    return `
+                        <tr class="${isLow ? 'table-warning' : ''}">
+                            <td><strong class="text-teal">${i.itemCode}</strong></td>
+                            <td>
+                                <div class="fw-semibold">${escapeHtml(i.name)}</div>
+                                <small class="text-muted">${escapeHtml(i.description || '')}</small>
+                            </td>
+                            <td><span class="badge bg-light text-dark">${i.category}</span></td>
+                            <td><strong class="${isLow ? 'text-danger fs-6' : ''}">${i.quantity}</strong></td>
+                            <td>${i.unit}</td>
+                            <td>${i.reorderLevel}</td>
+                            <td>LKR ${(i.costPrice || 0).toLocaleString()}</td>
+                            <td>${statusBadge}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-teal" onclick="openAdjustModal(${i.id}, '${escapeHtml(i.name)}')" title="Adjust Stock">
+                                        <i class="bi bi-sliders"></i>
+                                    </button>
+                                    <button class="btn btn-outline-secondary" onclick="viewStockHistory(${i.id}, '${escapeHtml(i.name)}')" title="Movement History">
+                                        <i class="bi bi-clock-history"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-danger py-4 text-center">Failed to load items: ${e.message}</td></tr>`;
+            }
+        }
+
+        async function loadSuppliers() {
+            const tbody = document.getElementById('suppliersTableBody');
+            try {
+                allSuppliers = await apiRequest('/suppliers');
+                const suppSelect = document.getElementById('itemSupplierSelect');
+                const poSuppSelect = document.getElementById('poSupplierSelect');
+
+                const opts = '<option value="">None / General</option>' + allSuppliers.map(s => `<option value="${s.id}">${s.name} (${s.supplierCode})</option>`).join('');
+                if (suppSelect) suppSelect.innerHTML = opts;
+                if (poSuppSelect) poSuppSelect.innerHTML = allSuppliers.map(s => `<option value="${s.id}">${s.name} (${s.supplierCode})</option>`).join('');
+
+                if (tbody) {
+                    if (allSuppliers.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No suppliers registered.</td></tr>';
+                        return;
+                    }
+                    tbody.innerHTML = allSuppliers.map(s => `
+                        <tr>
+                            <td><strong class="text-teal">${s.supplierCode}</strong></td>
+                            <td class="fw-semibold">${escapeHtml(s.name)}</td>
+                            <td>${escapeHtml(s.contactPerson || '—')}</td>
+                            <td>${s.phone}</td>
+                            <td>${s.email || '—'}</td>
+                            <td><span class="badge bg-success">ACTIVE</span></td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) {
+                if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-danger py-4 text-center">Failed to load suppliers: ${e.message}</td></tr>`;
+            }
+        }
+
+        async function loadPurchaseOrders() {
+            const tbody = document.getElementById('posTableBody');
+            try {
+                const pos = await apiRequest('/purchases');
+                if (!pos || pos.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No purchase orders recorded.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = pos.map(po => `
+                    <tr>
+                        <td><strong class="text-teal">${po.poNumber}</strong></td>
+                        <td>${escapeHtml(po.supplierName)}</td>
+                        <td>${po.orderDate || '—'}</td>
+                        <td>${po.expectedDeliveryDate || '—'}</td>
+                        <td><strong>LKR ${(po.totalAmount || 0).toLocaleString()}</strong></td>
+                        <td>
+                            <span class="badge ${po.status === 'RECEIVED' ? 'bg-success' : po.status === 'ORDERED' ? 'bg-primary' : 'bg-secondary'}">
+                                ${po.status}
+                            </span>
+                        </td>
+                        <td>
+                            ${po.status !== 'RECEIVED' && po.status !== 'CANCELLED' ? `
+                                <button class="btn btn-success btn-sm py-0 px-2" onclick="receivePurchaseOrder(${po.id})" title="Receive Goods & Auto-Increment Stock">
+                                    <i class="bi bi-box-arrow-in-down me-1"></i> Mark Received
+                                </button>
+                            ` : '<span class="text-muted small">Closed</span>'}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-danger py-4 text-center">Failed to load POs: ${e.message}</td></tr>`;
+            }
+        }
+
+        async function receivePurchaseOrder(poId) {
+            if (!confirm('Mark this purchase order as RECEIVED?\nThis will automatically increment stock quantities for all items in this PO.')) return;
+            try {
+                await apiRequest(`/purchases/${poId}/status?status=RECEIVED`, { method: 'PATCH' });
+                showNotification('Purchase order received! Stock levels updated.');
+                loadPurchaseOrders();
+                loadItems();
+            } catch (e) {
+                showNotification('Failed to receive PO: ' + e.message, 'error');
+            }
+        }
+
+        function openNewItemModal() {
+            document.getElementById('itemForm').reset();
+            document.getElementById('itemEditId').value = '';
+            document.getElementById('itemModalTitle').innerHTML = '<i class="bi bi-box-seam text-teal me-2"></i>Add Consumable Item';
+            itemModalInstance.show();
+        }
+
+        function openAdjustModal(itemId, itemName) {
+            document.getElementById('adjustForm').reset();
+            document.getElementById('adjustItemId').value = itemId;
+            document.getElementById('adjustItemName').value = itemName;
+            adjustModalInstance.show();
+        }
+
+        async function viewStockHistory(itemId, itemName) {
+            document.getElementById('historyModalTitle').innerHTML = `<i class="bi bi-clock-history text-teal me-2"></i>${itemName} - Movement History`;
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">Loading movement history...</td></tr>';
+            historyModalInstance.show();
+
+            try {
+                const list = await apiRequest(`/inventory/items/${itemId}/transactions`);
+                if (!list || list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">No stock movements recorded.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = list.map(t => `
+                    <tr>
+                        <td>${t.transactionDate ? t.transactionDate.replace('T', ' ').substring(0, 19) : '—'}</td>
+                        <td><span class="badge bg-light text-dark">${t.transactionType}</span></td>
+                        <td><strong class="${t.quantity > 0 ? 'text-success' : 'text-danger'}">${t.quantity > 0 ? '+' : ''}${t.quantity}</strong></td>
+                        <td>${escapeHtml(t.performedBy || 'Staff')}</td>
+                        <td>${escapeHtml(t.notes || '—')}</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-danger py-3 text-center">Failed: ${e.message}</td></tr>`;
+            }
+        }
+
+        function openNewSupplierModal() {
+            document.getElementById('supplierForm').reset();
+            supplierModalInstance.show();
+        }
+
+        function openNewPoModal() {
+            document.getElementById('poForm').reset();
+            document.getElementById('poItemsTableBody').innerHTML = '';
+            addPoItemRow();
+            poModalInstance.show();
+        }
+
+        function addPoItemRow() {
+            const tbody = document.getElementById('poItemsTableBody');
+            const rowId = Date.now();
+            const tr = document.createElement('tr');
+            tr.id = `po-row-${rowId}`;
+            tr.innerHTML = `
+                <td>
+                    <select class="form-select form-select-sm po-item-select" required onchange="onPoItemSelect(this, '${rowId}')">
+                        <option value="">Select Item...</option>
+                        ${allItems.map(i => `<option value="${i.id}" data-cost="${i.costPrice || 0}">${i.name} (${i.itemCode})</option>`).join('')}
+                    </select>
+                </td>
+                <td><input type="number" min="1" value="10" class="form-control form-control-sm po-qty-input" required></td>
+                <td><input type="number" step="0.01" class="form-control form-control-sm po-cost-input" id="po-cost-${rowId}" placeholder="Unit Cost" required></td>
+                <td><button type="button" class="btn btn-outline-danger btn-sm py-0 px-1" onclick="document.getElementById('po-row-${rowId}').remove()"><i class="bi bi-trash"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function onPoItemSelect(selectEl, rowId) {
+            const opt = selectEl.options[selectEl.selectedIndex];
+            const cost = opt.getAttribute('data-cost');
+            const costInput = document.getElementById(`po-cost-${rowId}`);
+            if (cost && costInput) {
+                costInput.value = cost;
+            }
+        }
+
+        function setupForms() {
+            // Item Form
+            document.getElementById('itemForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const suppId = document.getElementById('itemSupplierSelect').value;
+                const cost = document.getElementById('itemCostPrice').value;
+                const payload = {
+                    name: document.getElementById('itemName').value,
+                    category: document.getElementById('itemCategory').value,
+                    unit: document.getElementById('itemUnit').value,
+                    quantity: parseInt(document.getElementById('itemQuantity').value) || 0,
+                    reorderLevel: parseInt(document.getElementById('itemReorderLevel').value) || 5,
+                    costPrice: cost ? parseFloat(cost) : null,
+                    supplierId: suppId ? parseInt(suppId) : null,
+                    description: document.getElementById('itemDescription').value
+                };
+
+                try {
+                    await apiRequest('/inventory/items', {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    showNotification('Consumable item saved successfully');
+                    itemModalInstance.hide();
+                    loadItems();
+                } catch (err) {
+                    showNotification('Failed to save item: ' + err.message, 'error');
+                }
+            });
+
+            // Adjust Form
+            document.getElementById('adjustForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const payload = {
+                    itemId: parseInt(document.getElementById('adjustItemId').value),
+                    transactionType: document.getElementById('adjustType').value,
+                    quantity: parseInt(document.getElementById('adjustQty').value),
+                    notes: document.getElementById('adjustNotes').value
+                };
+
+                try {
+                    await apiRequest('/inventory/adjust', {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    showNotification('Stock adjustment recorded successfully');
+                    adjustModalInstance.hide();
+                    loadItems();
+                } catch (err) {
+                    showNotification('Failed to adjust stock: ' + err.message, 'error');
+                }
+            });
+
+            // Supplier Form
+            document.getElementById('supplierForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const payload = {
+                    name: document.getElementById('suppName').value,
+                    contactPerson: document.getElementById('suppContactPerson').value,
+                    phone: document.getElementById('suppPhone').value,
+                    email: document.getElementById('suppEmail').value,
+                    address: document.getElementById('suppAddress').value
+                };
+
+                try {
+                    await apiRequest('/suppliers', {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    showNotification('Supplier registered successfully');
+                    supplierModalInstance.hide();
+                    loadSuppliers();
+                } catch (err) {
+                    showNotification('Failed to register supplier: ' + err.message, 'error');
+                }
+            });
+
+            // PO Form
+            document.getElementById('poForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const rows = document.querySelectorAll('#poItemsTableBody tr');
+                const items = [];
+                for (let r of rows) {
+                    const itemId = r.querySelector('.po-item-select').value;
+                    const qty = r.querySelector('.po-qty-input').value;
+                    const cost = r.querySelector('.po-cost-input').value;
+                    if (itemId) {
+                        items.push({
+                            itemId: parseInt(itemId),
+                            quantity: parseInt(qty) || 1,
+                            unitPrice: parseFloat(cost) || 0
+                        });
+                    }
+                }
+
+                const payload = {
+                    supplierId: parseInt(document.getElementById('poSupplierSelect').value),
+                    expectedDeliveryDate: document.getElementById('poExpectedDate').value || null,
+                    notes: document.getElementById('poNotes').value,
+                    items: items
+                };
+
+                try {
+                    await apiRequest('/purchases', {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    showNotification('Purchase order created successfully');
+                    poModalInstance.hide();
+                    loadPurchaseOrders();
+                } catch (err) {
+                    showNotification('Failed to create purchase order: ' + err.message, 'error');
+                }
+            });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>

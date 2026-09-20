@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dentist Workspace - Sunrise Dental Clinic</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+                <div class="sidebar-brand-text">
+                    <h5>Sunrise Dental</h5>
+                    <small>Colombo Center</small>
+                </div>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-section-title">Operations</div>
+                <a href="dashboard.html" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                <a href="queue.html" class="sidebar-link"><i class="bi bi-people-fill"></i> Daily Queue & Tokens</a>
+                <a href="appointments.html" class="sidebar-link"><i class="bi bi-calendar-check"></i> Appointments</a>
+                <a href="patients.html" class="sidebar-link"><i class="bi bi-people"></i> Patients</a>
+                <a href="billing.html" class="sidebar-link receptionist-only"><i class="bi bi-receipt"></i> Billing & Payments</a>
+
+                <div class="nav-section-title">Clinical & Workspace</div>
+                <a href="dentist-workspace.html" class="sidebar-link active"><i class="bi bi-hospital"></i> Dentist Workspace</a>
+                <a href="dentists.html" class="sidebar-link"><i class="bi bi-person-badge"></i> Dentists</a>
+                <a href="treatments.html" class="sidebar-link"><i class="bi bi-journal-medical"></i> Treatments</a>
+                <a href="inventory.html" class="sidebar-link"><i class="bi bi-boxes"></i> Inventory & Supplies</a>
+
+                <div class="nav-section-title">Management & Support</div>
+                <a href="reports.html" class="sidebar-link"><i class="bi bi-bar-chart-line"></i> Reports & Analytics</a>
+                <a href="help.html" class="sidebar-link"><i class="bi bi-question-circle"></i> Staff Help Guide</a>
+                <a href="users.html" class="sidebar-link admin-only"><i class="bi bi-shield-lock"></i> User Accounts</a>
+            </div>
+            <div class="sidebar-user">
+                <div class="user-badge mb-2">
+                    <div class="user-avatar" id="currentUserAvatar">U</div>
+                    <div class="user-info">
+                        <div class="user-name" id="currentUserName">Loading...</div>
+                        <div class="user-role" id="currentUserRole">STAFF</div>
+                    </div>
+                </div>
+                <button onclick="handleLogout()" class="btn btn-outline-light btn-sm w-100 py-1">
+                    <i class="bi bi-box-arrow-right me-1"></i> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="top-bar">
+                <div class="page-title">
+                    <h1>Dentist Clinical Workspace</h1>
+                    <p>Active chair view, direct chart access, examination entry, and today's roster</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <label class="small fw-semibold text-muted mb-0">Dentist:</label>
+                    <select class="form-select form-select-sm" id="dentistSelector" style="width: 250px;" onchange="onDentistChange()"></select>
+                </div>
+            </div>
+
+            <!-- Active Chair Patient Banner -->
+            <div class="card-custom mb-4" id="inChairCard" style="border-left: 5px solid var(--primary-teal);">
+                <div class="card-body">
+                    <div class="row align-items-center g-3">
+                        <div class="col-auto">
+                            <span class="badge bg-success fs-6 p-2"><i class="bi bi-person-check-fill me-1"></i> IN CHAIR</span>
+                        </div>
+                        <div class="col">
+                            <div id="inChairContent">
+                                <h4 class="mb-1 text-teal" id="inChairPatientName">No patient currently in treatment chair</h4>
+                                <p class="text-muted mb-0 small" id="inChairDetails">Select a patient from today's schedule to call or begin treatment.</p>
+                            </div>
+                        </div>
+                        <div class="col-auto" id="inChairActions" style="display: none;">
+                            <a id="inChairProfileBtn" href="#" class="btn btn-teal">
+                                <i class="bi bi-grid-3x3-gap me-1"></i> Open FDI Tooth Chart
+                            </a>
+                            <button id="inChairCompleteBtn" class="btn btn-outline-success ms-2" onclick="completeCurrentSession()">
+                                <i class="bi bi-check2-circle me-1"></i> Complete Session
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Today's Schedule -->
+                <div class="col-lg-7">
+                    <div class="card-custom">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-calendar3 me-2 text-teal"></i>Today's Patient Schedule</h5>
+                            <span class="badge bg-secondary" id="scheduleCountBadge">0 Appointments</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-custom align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Token</th>
+                                            <th>Time</th>
+                                            <th>Patient</th>
+                                            <th>Procedure</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="scheduleTableBody">
+                                        <tr><td colspan="6" class="text-center py-4 text-muted">Loading schedule...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Clinical Records & Fast Tools -->
+                <div class="col-lg-5">
+                    <div class="card-custom mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-lightning-charge me-2 text-teal"></i>Quick Clinical Actions</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <a href="patients.html" class="btn btn-outline-teal text-start">
+                                    <i class="bi bi-search me-2"></i> Search Patient Directory
+                                </a>
+                                <a href="queue.html" class="btn btn-outline-secondary text-start">
+                                    <i class="bi bi-people me-2"></i> View Full Clinic Queue
+                                </a>
+                                <a href="inventory.html" class="btn btn-outline-secondary text-start">
+                                    <i class="bi bi-boxes me-2"></i> Check Dental Consumables Stock
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-custom">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-clock-history me-2 text-teal"></i>My Recent Examination Records</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush small" id="recentRecordsList">
+                                <div class="text-center py-4 text-muted">Loading recent records...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        let currentDentistId = null;
+        let currentInChairAppt = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = checkAuth();
+            if (!user) return;
+
+            await loadDentists();
+            await loadWorkspaceData();
+        });
+
+        async function loadDentists() {
+            try {
+                const dentists = await apiRequest('/dentists');
+                const selector = document.getElementById('dentistSelector');
+                if (dentists && dentists.length > 0) {
+                    selector.innerHTML = dentists.map(d => `<option value="${d.id}">Dr. ${d.fullName} (${d.specialization})</option>`).join('');
+                    currentDentistId = dentists[0].id;
+                }
+            } catch (e) {
+                console.error('Failed to load dentists', e);
+            }
+        }
+
+        function onDentistChange() {
+            currentDentistId = document.getElementById('dentistSelector').value;
+            loadWorkspaceData();
+        }
+
+        async function loadWorkspaceData() {
+            if (!currentDentistId) return;
+
+            const tbody = document.getElementById('scheduleTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Loading schedule...</td></tr>';
+
+            try {
+                const today = new Date().toISOString().substring(0, 10);
+                const allToday = await apiRequest(`/appointments/queue/today?date=${today}`);
+
+                // Filter for current dentist
+                const dentistAppts = allToday.filter(a => String(a.dentistId) === String(currentDentistId));
+                document.getElementById('scheduleCountBadge').textContent = `${dentistAppts.length} Appointments`;
+
+                // Find in-chair patient
+                currentInChairAppt = dentistAppts.find(a => a.status === 'IN_TREATMENT') || null;
+                updateInChairBanner();
+
+                if (dentistAppts.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No appointments assigned to you today.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = dentistAppts.map(a => `
+                    <tr class="${a.status === 'IN_TREATMENT' ? 'table-success' : ''}">
+                        <td><span class="token-badge">${a.tokenNumber || '—'}</span></td>
+                        <td><strong>${a.appointmentTime}</strong></td>
+                        <td>
+                            <a href="patient-profile.html?id=${a.patientId}" class="fw-bold text-teal text-decoration-none">
+                                ${escapeHtml(a.patientName)}
+                            </a>
+                        </td>
+                        <td>${escapeHtml(a.treatmentName)}</td>
+                        <td><span class="badge status-badge-${a.status}">${a.status}</span></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                ${a.status === 'SCHEDULED' || a.status === 'CONFIRMED' || a.status === 'WAITING' ? `
+                                    <button class="btn btn-warning btn-sm text-dark" onclick="callPatient(${a.id})">Call</button>
+                                ` : ''}
+                                ${a.status === 'CALLED' ? `
+                                    <button class="btn btn-success btn-sm" onclick="startTreatment(${a.id})">In-Chair</button>
+                                ` : ''}
+                                ${a.status === 'IN_TREATMENT' ? `
+                                    <button class="btn btn-primary btn-sm" onclick="completeVisit(${a.id})">Complete</button>
+                                ` : ''}
+                                <a href="patient-profile.html?id=${a.patientId}" class="btn btn-outline-teal btn-sm" title="360° Profile & Chart">
+                                    <i class="bi bi-person-vcard"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-danger py-4 text-center">Failed to load schedule: ${e.message}</td></tr>`;
+            }
+
+            // Load recent records
+            loadRecentRecords();
+        }
+
+        function updateInChairBanner() {
+            const inChairContent = document.getElementById('inChairContent');
+            const inChairActions = document.getElementById('inChairActions');
+
+            if (currentInChairAppt) {
+                document.getElementById('inChairPatientName').innerHTML = `
+                    ${escapeHtml(currentInChairAppt.patientName)}
+                    <span class="badge bg-dark text-info ms-2">${currentInChairAppt.tokenNumber || ''}</span>
+                `;
+                document.getElementById('inChairDetails').textContent = `
+                    Procedure: ${currentInChairAppt.treatmentName} | Scheduled: ${currentInChairAppt.appointmentTime} | Contact: ${currentInChairAppt.patientContactNumber || '—'}
+                `;
+                document.getElementById('inChairProfileBtn').href = `patient-profile.html?id=${currentInChairAppt.patientId}`;
+                inChairActions.style.display = 'block';
+            } else {
+                document.getElementById('inChairPatientName').textContent = 'No patient currently in treatment chair';
+                document.getElementById('inChairDetails').textContent = 'Select a patient from today\'s schedule to call or begin treatment.';
+                inChairActions.style.display = 'none';
+            }
+        }
+
+        async function callPatient(apptId) {
+            try {
+                await apiRequest(`/appointments/${apptId}/queue/call`, { method: 'POST' });
+                showNotification('Patient called to chair');
+                loadWorkspaceData();
+            } catch (e) { showNotification('Failed: ' + e.message, 'error'); }
+        }
+
+        async function startTreatment(apptId) {
+            try {
+                await apiRequest(`/appointments/${apptId}/queue/start`, { method: 'POST' });
+                showNotification('Patient seated in chair');
+                loadWorkspaceData();
+            } catch (e) { showNotification('Failed: ' + e.message, 'error'); }
+        }
+
+        async function completeVisit(apptId) {
+            try {
+                await apiRequest(`/appointments/${apptId}/queue/complete`, { method: 'POST' });
+                showNotification('Session completed');
+                loadWorkspaceData();
+            } catch (e) { showNotification('Failed: ' + e.message, 'error'); }
+        }
+
+        async function completeCurrentSession() {
+            if (currentInChairAppt) {
+                await completeVisit(currentInChairAppt.id);
+            }
+        }
+
+        async function loadRecentRecords() {
+            const listEl = document.getElementById('recentRecordsList');
+            try {
+                // Today's records
+                const today = new Date().toISOString().substring(0, 10);
+                const records = await apiRequest(`/clinical-records/patient/1`).catch(() => []);
+                listEl.innerHTML = `
+                    <div class="list-group-item">
+                        <div class="fw-bold">Ready for documentation</div>
+                        <div class="text-muted">Use the 360° patient profile to record findings, modify tooth conditions, and issue prescriptions.</div>
+                    </div>
+                `;
+            } catch (e) {
+                listEl.innerHTML = '<div class="p-3 text-muted">No recent records.</div>';
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>

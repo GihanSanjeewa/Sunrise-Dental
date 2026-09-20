@@ -6,6 +6,9 @@ package com.sunrise.dental.enums;
 public enum AppointmentStatus {
     BOOKED,
     CONFIRMED,
+    WAITING,
+    CALLED,
+    IN_TREATMENT,
     COMPLETED,
     CANCELLED,
     NO_SHOW

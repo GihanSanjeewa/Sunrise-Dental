@@ -20,4 +20,9 @@ public interface AppointmentService {
                                                 String patientName, String contactNumber,
                                                 Long dentistId, LocalDate date, AppointmentStatus status);
     List<AppointmentResponse> getTodayAppointments();
+    List<AppointmentResponse> getDailyQueue(LocalDate date);
+    AppointmentResponse callPatient(Long id);
+    AppointmentResponse startTreatment(Long id);
+    AppointmentResponse completeVisit(Long id);
+    AppointmentResponse markNoShow(Long id);
 }

@@ -50,8 +50,31 @@ public class AuthServiceImpl implements AuthService {
             throw new UnauthorizedException("Your user account has been deactivated. Please contact an administrator.");
         }
 
+        // Account lockout check (15-minute temporary lockout after 5 consecutive failures)
+        if (user.getLockoutUntil() != null && user.getLockoutUntil().isAfter(java.time.LocalDateTime.now())) {
+            throw new UnauthorizedException("Account is temporarily locked due to multiple failed login attempts. Please try again later.");
+        }
+
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            int attempts = (user.getFailedLoginAttempts() != null ? user.getFailedLoginAttempts() : 0) + 1;
+            user.setFailedLoginAttempts(attempts);
+            if (attempts >= 5) {
+                user.setLockoutUntil(java.time.LocalDateTime.now().plusMinutes(15));
+                auditService.logAction(user.getUsername(), "ACCOUNT_LOCKOUT", "USER", user.getId().toString(),
+                        "Account locked for 15 minutes due to 5 consecutive failed login attempts.");
+            } else {
+                auditService.logAction(user.getUsername(), "FAILED_LOGIN", "USER", user.getId().toString(),
+                        "Failed login attempt #" + attempts);
+            }
+            userRepository.save(user);
             throw new UnauthorizedException("Invalid username or password.");
+        }
+
+        // Reset failed login counter on successful authentication
+        if (user.getFailedLoginAttempts() != null && user.getFailedLoginAttempts() > 0) {
+            user.setFailedLoginAttempts(0);
+            user.setLockoutUntil(null);
+            userRepository.save(user);
         }
 
         auditService.logAction(user.getUsername(), "LOGIN", "USER", user.getId().toString(), "Successful user login");
@@ -67,6 +90,26 @@ public class AuthServiceImpl implements AuthService {
                 sessionToken,
                 "Authentication successful. Welcome, " + user.getFullName() + "!"
         );
+    }
+
+    @Override
+    public void changePassword(String username, String currentPassword, String newPassword) {
+        if (newPassword == null || newPassword.length() < 6) {
+            throw new ValidationException("New password must be at least 6 characters long.");
+        }
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
+
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new ValidationException("Current password is incorrect.");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        auditService.logAction(username, "CHANGE_PASSWORD", "USER", user.getId().toString(),
+                "Password changed successfully.");
     }
 
     @Override

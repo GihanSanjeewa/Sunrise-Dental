@@ -12,4 +12,5 @@ public interface AuthService {
     List<User> getAllUsers();
     User getUserById(Long id);
     User updateUserStatus(Long id, boolean active);
+    void changePassword(String username, String currentPassword, String newPassword);
 }

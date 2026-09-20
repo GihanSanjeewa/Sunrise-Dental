@@ -36,4 +36,42 @@ public class IdSequenceGenerator {
         long id = nextId != null ? nextId : 1L;
         return String.format("PAY-%d-%06d", year, id);
     }
+
+    public static String generateClinicalRecordNumber(Long nextId) {
+        int year = LocalDate.now().getYear();
+        long id = nextId != null ? nextId : 1L;
+        return String.format("CR-%d-%06d", year, id);
+    }
+
+    public static String generateTreatmentPlanNumber(Long nextId) {
+        int year = LocalDate.now().getYear();
+        long id = nextId != null ? nextId : 1L;
+        return String.format("TP-%d-%06d", year, id);
+    }
+
+    public static String generatePrescriptionNumber(Long nextId) {
+        int year = LocalDate.now().getYear();
+        long id = nextId != null ? nextId : 1L;
+        return String.format("RX-%d-%06d", year, id);
+    }
+
+    public static String generatePurchaseOrderNumber(Long nextId) {
+        int year = LocalDate.now().getYear();
+        long id = nextId != null ? nextId : 1L;
+        return String.format("PO-%d-%06d", year, id);
+    }
+
+    public static String generateSupplierCode(Long nextId) {
+        long id = nextId != null ? nextId : 1L;
+        return String.format("SUP-%03d", id);
+    }
+
+    public static String generateInventoryItemCode(Long nextId) {
+        long id = nextId != null ? nextId : 1L;
+        return String.format("ITEM-%03d", id);
+    }
+
+    public static String generateTokenNumber(int sequenceNumber) {
+        return String.format("A%03d", sequenceNumber);
+    }
 }

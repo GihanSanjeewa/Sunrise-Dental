@@ -1,13 +1,12 @@
 -- =============================================================================
 -- Sunrise Dental Clinic Appointment and Patient Management System
--- Baseline Master Seed Data Script
+-- Baseline Master Seed Data Script - Complete Enhanced Master Data
 -- Note: Password hashes use BCrypt algorithm.
 -- Default test credentials:
 --   admin / admin123 (Role: ADMIN)
 --   receptionist / recept123 (Role: RECEPTIONIST)
 --   dr.perera / dentist123 (Role: DENTIST)
 --   dr.silva / dentist123 (Role: DENTIST)
---   password123 hash: $2a$10$eACCYoNOHEqgkHgDEmGyeeu87gV8866W7K4W758VeqR1Y9e0Jz0k.
 -- =============================================================================
 
 USE sunrise_dental_db;
@@ -16,11 +15,11 @@ USE sunrise_dental_db;
 -- Seed: users
 -- BCrypt hashes generated with cost factor 10
 -- -----------------------------------------------------------------------------
-INSERT INTO users (username, password_hash, full_name, email, role, is_active) VALUES
-('admin', '$2a$10$uBZJa/Wm5SVPozp1qkn8SebomsF2PdO92iEvhqV7QWP3kLZEL0tUK', 'System Administrator', 'admin@sunrisedental.lk', 'ADMIN', TRUE),
-('receptionist', '$2a$10$H8WFxB8UzbuDy7e6hQbb3erjSCec6jxLUHvt6af7CEqi35hw/mf/e', 'Kamani Jayawardena', 'kamani@sunrisedental.lk', 'RECEPTIONIST', TRUE),
-('dr.perera', '$2a$10$5fpiUuUfbuz.xnZ16.qpj.iBeBCq4owEhlKTBZUmPpV6tMmoQUBuS', 'Dr. Rohan Perera', 'rohan.perera@sunrisedental.lk', 'DENTIST', TRUE),
-('dr.silva', '$2a$10$5fpiUuUfbuz.xnZ16.qpj.iBeBCq4owEhlKTBZUmPpV6tMmoQUBuS', 'Dr. Anoma Silva', 'anoma.silva@sunrisedental.lk', 'DENTIST', TRUE);
+INSERT INTO users (username, password_hash, full_name, email, role, is_active, failed_login_attempts) VALUES
+('admin', '$2a$10$uBZJa/Wm5SVPozp1qkn8SebomsF2PdO92iEvhqV7QWP3kLZEL0tUK', 'System Administrator', 'admin@sunrisedental.lk', 'ADMIN', TRUE, 0),
+('receptionist', '$2a$10$H8WFxB8UzbuDy7e6hQbb3erjSCec6jxLUHvt6af7CEqi35hw/mf/e', 'Kamani Jayawardena', 'kamani@sunrisedental.lk', 'RECEPTIONIST', TRUE, 0),
+('dr.perera', '$2a$10$5fpiUuUfbuz.xnZ16.qpj.iBeBCq4owEhlKTBZUmPpV6tMmoQUBuS', 'Dr. Rohan Perera', 'rohan.perera@sunrisedental.lk', 'DENTIST', TRUE, 0),
+('dr.silva', '$2a$10$5fpiUuUfbuz.xnZ16.qpj.iBeBCq4owEhlKTBZUmPpV6tMmoQUBuS', 'Dr. Anoma Silva', 'anoma.silva@sunrisedental.lk', 'DENTIST', TRUE, 0);
 
 -- -----------------------------------------------------------------------------
 -- Seed: patients
@@ -58,14 +57,14 @@ INSERT INTO treatments (treatment_code, treatment_name, description, treatment_c
 
 -- -----------------------------------------------------------------------------
 -- Seed: appointments
--- Historical and active appointment bookings
+-- Historical and active appointment bookings with daily tokens
 -- -----------------------------------------------------------------------------
-INSERT INTO appointments (appointment_number, patient_id, dentist_id, treatment_id, appointment_date, appointment_time, status, notes) VALUES
-('APT-2026-000001', 1, 1, 2, '2026-09-16', '09:00:00', 'CONFIRMED', 'Routine 6-month preventive scaling and calculus removal.'),
-('APT-2026-000002', 2, 2, 5, '2026-09-16', '10:30:00', 'BOOKED', 'Severe pulpalgia in upper left first molar. Requires endodontic evaluation.'),
-('APT-2026-000003', 3, 3, 3, '2026-09-16', '14:00:00', 'BOOKED', 'Composite restoration for lower premolar interproximal lesion.'),
-('APT-2026-000004', 4, 1, 1, '2026-09-17', '11:00:00', 'BOOKED', 'Orthodontic alignment consultation for malocclusion.'),
-('APT-2026-000005', 5, 2, 4, '2026-09-15', '09:30:00', 'COMPLETED', 'Successfully extracted lower right third molar under local anesthesia.');
+INSERT INTO appointments (appointment_number, token_number, patient_id, dentist_id, treatment_id, appointment_date, appointment_time, status, notes) VALUES
+('APT-2026-000001', 'A001', 1, 1, 2, '2026-09-16', '09:00:00', 'CONFIRMED', 'Routine 6-month preventive scaling and calculus removal.'),
+('APT-2026-000002', 'A002', 2, 2, 5, '2026-09-16', '10:30:00', 'BOOKED', 'Severe pulpalgia in upper left first molar. Requires endodontic evaluation.'),
+('APT-2026-000003', 'A003', 3, 3, 3, '2026-09-16', '14:00:00', 'BOOKED', 'Composite restoration for lower premolar interproximal lesion.'),
+('APT-2026-000004', 'A004', 4, 1, 1, '2026-09-17', '11:00:00', 'BOOKED', 'Orthodontic alignment consultation for malocclusion.'),
+('APT-2026-000005', 'A005', 5, 2, 4, '2026-09-15', '09:30:00', 'COMPLETED', 'Successfully extracted lower right third molar under local anesthesia.');
 
 -- -----------------------------------------------------------------------------
 -- Seed: bills
@@ -82,10 +81,83 @@ INSERT INTO payments (payment_number, bill_id, amount_paid, payment_method, note
 ('PAY-2026-000001', 1, 7790.00, 'CASH', 'Full payment received at front reception counter.');
 
 -- -----------------------------------------------------------------------------
+-- Seed: medications
+-- Formulated dental drugs
+-- -----------------------------------------------------------------------------
+INSERT INTO medications (name, generic_name, dosage_form, default_dosage, default_frequency, instructions, is_active) VALUES
+('Amoxicillin 500mg', 'Amoxicillin Trihydrate', 'CAPSULE', '500 mg', 'Three times daily (TID)', 'Take after meals for 5 days.', TRUE),
+('Augmentin 625mg', 'Amoxicillin + Clavulanic Acid', 'TABLET', '625 mg', 'Twice daily (BD)', 'Take with food for 5-7 days.', TRUE),
+('Metronidazole 400mg', 'Metronidazole', 'TABLET', '400 mg', 'Three times daily (TID)', 'Avoid alcohol completely during treatment.', TRUE),
+('Paracetamol 500mg', 'Acetaminophen', 'TABLET', '1000 mg', 'Every 6 hours as needed (PRN)', 'Do not exceed 4000mg in 24 hours.', TRUE),
+('Ibuprofen 400mg', 'Ibuprofen', 'TABLET', '400 mg', 'Three times daily (TID)', 'Take immediately after food.', TRUE),
+('Chlorhexidine Mouthwash 0.2%', 'Chlorhexidine Gluconate', 'MOUTHWASH', '10 ml', 'Twice daily (BD)', 'Rinse mouth thoroughly for 60 seconds after brushing.', TRUE),
+('Miconazole Oral Gel', 'Miconazole', 'GEL', 'Application', 'Four times daily (QID)', 'Apply topically to affected oral mucosa after meals.', TRUE);
+
+-- -----------------------------------------------------------------------------
+-- Seed: suppliers
+-- Certified dental suppliers
+-- -----------------------------------------------------------------------------
+INSERT INTO suppliers (supplier_code, name, contact_person, phone, email, address, status) VALUES
+('SUP-001', 'Lanka Dental Supplies Pvt Ltd', 'Nimal Jayasuriya', '0112345678', 'sales@lankadental.lk', 'No. 120, Union Place, Colombo 02', 'ACTIVE'),
+('SUP-002', 'MediEquip Healthcare Distributors', 'Chathuri Perera', '0114567890', 'info@mediequip.lk', 'No. 55, Nawala Road, Nugegoda', 'ACTIVE'),
+('SUP-003', 'Prime Dental & Pharma Solutions', 'Ravi Gunaratne', '0773334455', 'ravi@primedental.lk', 'No. 88, High Level Road, Maharagama', 'ACTIVE');
+
+-- -----------------------------------------------------------------------------
+-- Seed: inventory_items
+-- Baseline dental clinical supplies and materials
+-- -----------------------------------------------------------------------------
+INSERT INTO inventory_items (item_code, name, category, supplier_id, current_quantity, minimum_quantity, unit, unit_cost, expiry_date, status) VALUES
+('ITEM-001', 'Nitrile Examination Gloves (Medium)', 'Personal Protective Equipment', 1, 150, 30, 'BOXES', 1200.00, '2028-12-31', 'IN_STOCK'),
+('ITEM-002', 'Surgical 3-Ply Face Masks', 'Personal Protective Equipment', 1, 80, 25, 'BOXES', 650.00, '2027-06-30', 'IN_STOCK'),
+('ITEM-003', 'Lignocaine 2% with Adrenaline Cartridges', 'Anesthetics & Pharmaceuticals', 2, 12, 20, 'BOXES', 4800.00, '2026-11-30', 'LOW_STOCK'),
+('ITEM-004', '3M Filtek Universal Composite Resin (A2)', 'Restorative Materials', 1, 8, 5, 'TUBES', 7500.00, '2027-08-31', 'IN_STOCK'),
+('ITEM-005', 'Glass Ionomer Luting Cement', 'Restorative Materials', 3, 6, 4, 'PACKS', 9200.00, '2027-04-15', 'IN_STOCK'),
+('ITEM-006', 'Alginate Impression Material (500g)', 'Impression Materials', 2, 4, 10, 'PACKS', 2800.00, '2027-01-31', 'LOW_STOCK'),
+('ITEM-007', 'Endodontic K-Files Assorted (21mm)', 'Endodontics', 3, 25, 10, 'PACKS', 1850.00, '2029-01-01', 'IN_STOCK'),
+('ITEM-008', 'Dental Needles 27G Long', 'Disposables', 2, 200, 50, 'PIECES', 45.00, '2028-05-31', 'IN_STOCK');
+
+-- -----------------------------------------------------------------------------
+-- Seed: clinical_records
+-- Baseline encounter record for Patient 5
+-- -----------------------------------------------------------------------------
+INSERT INTO clinical_records (record_number, patient_id, dentist_id, appointment_id, visit_date, chief_complaint, medical_history, allergies, current_medications, diagnosis, clinical_notes, treatment_notes, follow_up_notes) VALUES
+('CR-2026-000001', 5, 2, 5, '2026-09-15', 'Severe throbbing pain in lower right wisdom tooth area.', 'Hypertension (managed). No diabetes.', 'Penicillin allergy noted.', 'Amlodipine 5mg daily.', 'Impacted lower right third molar (Tooth 48) with localized pericoronitis.', 'Oral mucosa inflamed over disto-angular impacted tooth 48.', 'Administered local anesthesia. Performed simple surgical extraction of tooth 48. Hemostasis achieved.', 'Follow-up in 7 days for review. Prescribed Augmentin alternative and analgesics.');
+
+-- -----------------------------------------------------------------------------
+-- Seed: dental_teeth
+-- Baseline tooth chart for Patient 5
+-- -----------------------------------------------------------------------------
+INSERT INTO dental_teeth (patient_id, tooth_number, tooth_condition, status, notes, last_treatment_date) VALUES
+(5, 48, 'MISSING', 'EXTRACTED', 'Extracted due to impaction and pericoronitis.', '2026-09-15'),
+(5, 16, 'CARIES', 'NEEDS_TREATMENT', 'Occlusal fissure caries observed.', '2026-09-15'),
+(5, 36, 'FILLED', 'RESTORED', 'Composite restoration done in 2024.', '2024-05-10');
+
+-- -----------------------------------------------------------------------------
+-- Seed: tooth_history
+-- -----------------------------------------------------------------------------
+INSERT INTO tooth_history (dental_tooth_id, clinical_record_id, treatment_name, procedure_date, notes) VALUES
+(1, 1, 'Surgical Tooth Extraction', '2026-09-15', 'Tooth 48 extracted successfully.');
+
+-- -----------------------------------------------------------------------------
+-- Seed: diagnoses
+-- -----------------------------------------------------------------------------
+INSERT INTO diagnoses (clinical_record_id, patient_id, dentist_id, diagnosis_code, diagnosis_name, notes, diagnosed_date, related_teeth, status) VALUES
+(1, 5, 2, 'K01.1', 'Impacted third molar with pericoronitis', 'Severe pain and localized gingival swelling', '2026-09-15', '48', 'RESOLVED');
+
+-- -----------------------------------------------------------------------------
+-- Seed: notifications
+-- Baseline system alerts
+-- -----------------------------------------------------------------------------
+INSERT INTO notifications (title, message, type, target_role, is_read, link_url) VALUES
+('Low Stock Alert', 'Lignocaine 2% with Adrenaline Cartridges is running low (12 remaining, minimum: 20).', 'LOW_STOCK', 'ADMIN', FALSE, 'inventory.html'),
+('Low Stock Alert', 'Alginate Impression Material (500g) is running low (4 remaining, minimum: 10).', 'LOW_STOCK', 'ADMIN', FALSE, 'inventory.html'),
+('Appointment Notice', '5 appointments scheduled for today across active clinical rosters.', 'APPOINTMENT_UPCOMING', 'ALL', FALSE, 'appointments.html');
+
+-- -----------------------------------------------------------------------------
 -- Seed: audit_logs
 -- Baseline operational logs
 -- -----------------------------------------------------------------------------
-INSERT INTO audit_logs (username, action, entity_name, entity_id, details) VALUES
-('admin', 'INITIALIZE', 'DATABASE', 'SCHEMA', 'Master database schema and baseline catalogs seeded successfully.'),
-('receptionist', 'REGISTER', 'PATIENT', 'P-000001', 'Onboarded patient Sunil Wickramasinghe.'),
-('receptionist', 'BOOK', 'APPOINTMENT', 'APT-2026-000001', 'Booked scaling appointment for Sunil Wickramasinghe with Dr. Rohan Perera.');
+INSERT INTO audit_logs (username, action, entity_name, entity_id, details, ip_address) VALUES
+('admin', 'INITIALIZE', 'DATABASE', 'SCHEMA', 'Master database schema and baseline catalogs seeded successfully.', '127.0.0.1'),
+('receptionist', 'REGISTER', 'PATIENT', 'P-000001', 'Onboarded patient Sunil Wickramasinghe.', '127.0.0.1'),
+('receptionist', 'BOOK', 'APPOINTMENT', 'APT-2026-000001', 'Booked scaling appointment for Sunil Wickramasinghe with Dr. Rohan Perera.', '127.0.0.1');

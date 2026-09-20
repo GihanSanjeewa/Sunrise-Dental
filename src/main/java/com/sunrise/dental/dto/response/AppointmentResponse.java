@@ -9,6 +9,7 @@ import java.time.LocalTime;
 public class AppointmentResponse {
     private Long id;
     private String appointmentNumber;
+    private String tokenNumber;
 
     // Patient Details
     private Long patientId;
@@ -62,6 +63,14 @@ public class AppointmentResponse {
 
     public void setAppointmentNumber(String appointmentNumber) {
         this.appointmentNumber = appointmentNumber;
+    }
+
+    public String getTokenNumber() {
+        return tokenNumber;
+    }
+
+    public void setTokenNumber(String tokenNumber) {
+        this.tokenNumber = tokenNumber;
     }
 
     public Long getPatientId() {
