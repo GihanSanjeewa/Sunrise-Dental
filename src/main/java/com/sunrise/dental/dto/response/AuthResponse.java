@@ -1,6 +1,7 @@
 package com.sunrise.dental.dto.response;
 
 import com.sunrise.dental.enums.Role;
+import java.util.Set;
 
 public class AuthResponse {
     private Long id;
@@ -10,6 +11,7 @@ public class AuthResponse {
     private Role role;
     private String token;
     private String message;
+    private Set<String> permissions;
 
     public AuthResponse() {
     }
@@ -22,6 +24,17 @@ public class AuthResponse {
         this.role = role;
         this.token = token;
         this.message = message;
+    }
+
+    public AuthResponse(Long id, String username, String fullName, String email, Role role, String token, String message, Set<String> permissions) {
+        this.id = id;
+        this.username = username;
+        this.fullName = fullName;
+        this.email = email;
+        this.role = role;
+        this.token = token;
+        this.message = message;
+        this.permissions = permissions;
     }
 
     public Long getId() {
@@ -78,5 +91,13 @@ public class AuthResponse {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public Set<String> getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(Set<String> permissions) {
+        this.permissions = permissions;
     }
 }

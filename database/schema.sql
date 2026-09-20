@@ -38,6 +38,7 @@ DROP TABLE IF EXISTS appointments;
 DROP TABLE IF EXISTS treatments;
 DROP TABLE IF EXISTS dentists;
 DROP TABLE IF EXISTS patients;
+DROP TABLE IF EXISTS user_permissions;
 DROP TABLE IF EXISTS users;
 
 -- -----------------------------------------------------------------------------
@@ -58,6 +59,17 @@ CREATE TABLE users (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_user_username (username),
     INDEX idx_user_role (role)
+) ENGINE=InnoDB;
+
+-- -----------------------------------------------------------------------------
+-- 1b. Table: user_permissions
+-- Stores granular permissions assigned to user accounts.
+-- -----------------------------------------------------------------------------
+CREATE TABLE user_permissions (
+    user_id BIGINT NOT NULL,
+    permission VARCHAR(50) NOT NULL,
+    PRIMARY KEY (user_id, permission),
+    CONSTRAINT fk_user_permissions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- -----------------------------------------------------------------------------

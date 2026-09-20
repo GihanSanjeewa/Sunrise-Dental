@@ -22,6 +22,41 @@ INSERT INTO users (username, password_hash, full_name, email, role, is_active, f
 ('dr.silva', '$2a$10$5fpiUuUfbuz.xnZ16.qpj.iBeBCq4owEhlKTBZUmPpV6tMmoQUBuS', 'Dr. Anoma Silva', 'anoma.silva@sunrisedental.lk', 'DENTIST', TRUE, 0);
 
 -- -----------------------------------------------------------------------------
+-- Seed: user_permissions
+-- Granular permissions assigned per staff user
+-- -----------------------------------------------------------------------------
+INSERT INTO user_permissions (user_id, permission) VALUES
+-- Admin: Full System Permissions
+(1, 'PATIENT_READ'), (1, 'PATIENT_WRITE'),
+(1, 'APPOINTMENT_READ'), (1, 'APPOINTMENT_WRITE'),
+(1, 'CLINICAL_READ'), (1, 'CLINICAL_WRITE'),
+(1, 'CHART_READ'), (1, 'CHART_WRITE'),
+(1, 'TREATMENT_PLAN_READ'), (1, 'TREATMENT_PLAN_WRITE'),
+(1, 'PRESCRIPTION_READ'), (1, 'PRESCRIPTION_WRITE'),
+(1, 'BILLING_READ'), (1, 'BILLING_WRITE'),
+(1, 'INVENTORY_READ'), (1, 'INVENTORY_WRITE'),
+(1, 'REPORTS_VIEW'), (1, 'USER_MANAGE'),
+-- Receptionist: Operations, Appointments, Patients, Billing, Reports
+(2, 'PATIENT_READ'), (2, 'PATIENT_WRITE'),
+(2, 'APPOINTMENT_READ'), (2, 'APPOINTMENT_WRITE'),
+(2, 'BILLING_READ'), (2, 'BILLING_WRITE'),
+(2, 'REPORTS_VIEW'),
+-- Dr. Rohan Perera: Clinical, Dental Chart, Treatment Plans, Prescriptions, Inventory Read
+(3, 'PATIENT_READ'), (3, 'APPOINTMENT_READ'),
+(3, 'CLINICAL_READ'), (3, 'CLINICAL_WRITE'),
+(3, 'CHART_READ'), (3, 'CHART_WRITE'),
+(3, 'TREATMENT_PLAN_READ'), (3, 'TREATMENT_PLAN_WRITE'),
+(3, 'PRESCRIPTION_READ'), (3, 'PRESCRIPTION_WRITE'),
+(3, 'INVENTORY_READ'),
+-- Dr. Anoma Silva: Clinical, Dental Chart, Treatment Plans, Prescriptions, Inventory Read
+(4, 'PATIENT_READ'), (4, 'APPOINTMENT_READ'),
+(4, 'CLINICAL_READ'), (4, 'CLINICAL_WRITE'),
+(4, 'CHART_READ'), (4, 'CHART_WRITE'),
+(4, 'TREATMENT_PLAN_READ'), (4, 'TREATMENT_PLAN_WRITE'),
+(4, 'PRESCRIPTION_READ'), (4, 'PRESCRIPTION_WRITE'),
+(4, 'INVENTORY_READ');
+
+-- -----------------------------------------------------------------------------
 -- Seed: patients
 -- Realistic Sri Lankan patient profiles
 -- -----------------------------------------------------------------------------

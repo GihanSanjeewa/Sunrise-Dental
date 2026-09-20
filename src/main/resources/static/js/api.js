@@ -1,6 +1,6 @@
 /**
  * Sunrise Dental Clinic Management System
- * Centralized API Client and Authentication Helpers
+ * Centralized API Client, Authentication, and Granular Permission Helpers
  */
 
 const API_BASE = '/api';
@@ -24,7 +24,19 @@ function clearSession() {
     sessionStorage.removeItem('sunrise_user');
 }
 
-function checkAuth(allowedRoles = []) {
+/**
+ * Checks if the current session user has a specific granular permission.
+ * System administrators (ADMIN) always have all permissions.
+ */
+function hasPermission(permissionName) {
+    const user = getSession();
+    if (!user) return false;
+    if (user.role === 'ADMIN') return true;
+    if (!user.permissions || !Array.isArray(user.permissions)) return false;
+    return user.permissions.includes(permissionName);
+}
+
+function checkAuth(allowedRoles = [], requiredPermission = null) {
     const user = getSession();
     if (!user) {
         window.location.href = 'index.html';
@@ -33,6 +45,12 @@ function checkAuth(allowedRoles = []) {
 
     if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
         alert('You do not have permission to access this section.');
+        window.location.href = 'dashboard.html';
+        return null;
+    }
+
+    if (requiredPermission && !hasPermission(requiredPermission)) {
+        alert(`Access Denied: Missing required permission [${requiredPermission}].`);
         window.location.href = 'dashboard.html';
         return null;
     }
@@ -57,6 +75,15 @@ function checkAuth(allowedRoles = []) {
         const adminLinks = document.querySelectorAll('.admin-only');
         adminLinks.forEach(el => el.style.display = 'none');
     }
+
+    // Apply granular permission restrictions to elements with data-permission
+    const permElements = document.querySelectorAll('[data-permission]');
+    permElements.forEach(el => {
+        const perm = el.getAttribute('data-permission');
+        if (perm && !hasPermission(perm)) {
+            el.style.display = 'none';
+        }
+    });
 
     return user;
 }

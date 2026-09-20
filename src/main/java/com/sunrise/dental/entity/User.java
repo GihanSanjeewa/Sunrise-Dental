@@ -1,8 +1,12 @@
 package com.sunrise.dental.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sunrise.dental.enums.Permission;
 import com.sunrise.dental.enums.Role;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -15,6 +19,7 @@ public class User {
     @Column(nullable = false, unique = true, length = 50)
     private String username;
 
+    @JsonIgnore
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
@@ -36,6 +41,12 @@ public class User {
 
     @Column(name = "lockout_until")
     private LocalDateTime lockoutUntil;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_permissions", joinColumns = @JoinColumn(name = "user_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "permission", length = 50)
+    private Set<Permission> permissions = new HashSet<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -61,6 +72,12 @@ public class User {
         this.updatedAt = LocalDateTime.now();
         if (this.isActive == null) {
             this.isActive = true;
+        }
+        if (this.failedLoginAttempts == null) {
+            this.failedLoginAttempts = 0;
+        }
+        if (this.permissions == null || this.permissions.isEmpty()) {
+            this.permissions = new HashSet<>(Permission.getDefaultPermissions(this.role));
         }
     }
 
@@ -139,6 +156,25 @@ public class User {
 
     public void setLockoutUntil(LocalDateTime lockoutUntil) {
         this.lockoutUntil = lockoutUntil;
+    }
+
+    public Set<Permission> getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(Set<Permission> permissions) {
+        this.permissions = permissions;
+    }
+
+    /**
+     * Resolves effective permissions: returns custom user permissions if assigned,
+     * otherwise falls back to the default role permissions.
+     */
+    public Set<Permission> getEffectivePermissions() {
+        if (permissions != null && !permissions.isEmpty()) {
+            return permissions;
+        }
+        return Permission.getDefaultPermissions(this.role);
     }
 
     public LocalDateTime getCreatedAt() {
