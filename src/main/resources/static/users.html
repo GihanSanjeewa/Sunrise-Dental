@@ -440,8 +440,29 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/api.js"></script>
     <script>
+        const SYSTEM_PERMISSIONS = [
+            { code: 'PATIENT_READ', name: 'Patient Read', category: 'Patient Management', description: 'View patient demographics, contact info, and medical summaries', defaultRoles: ['ADMIN', 'RECEPTIONIST', 'DENTIST'] },
+            { code: 'PATIENT_WRITE', name: 'Patient Write', category: 'Patient Management', description: 'Create, edit, and update patient profiles', defaultRoles: ['ADMIN', 'RECEPTIONIST'] },
+            { code: 'APPOINTMENT_READ', name: 'Appointment Read', category: 'Appointments & Queue', description: 'View appointments calendar, daily roster, and queue list', defaultRoles: ['ADMIN', 'RECEPTIONIST', 'DENTIST'] },
+            { code: 'APPOINTMENT_WRITE', name: 'Appointment Write', category: 'Appointments & Queue', description: 'Book, reschedule, cancel appointments and manage queue calling', defaultRoles: ['ADMIN', 'RECEPTIONIST'] },
+            { code: 'CLINICAL_READ', name: 'Clinical Read', category: 'Clinical Records', description: 'View patient clinical notes, medical history, and allergies', defaultRoles: ['ADMIN', 'DENTIST'] },
+            { code: 'CLINICAL_WRITE', name: 'Clinical Write', category: 'Clinical Records', description: 'Record patient visits, clinical diagnoses, and treatment notes', defaultRoles: ['ADMIN', 'DENTIST'] },
+            { code: 'CHART_READ', name: 'Chart Read', category: 'Dental Chart', description: 'View interactive 32-tooth FDI dental chart and tooth history', defaultRoles: ['ADMIN', 'DENTIST'] },
+            { code: 'CHART_WRITE', name: 'Chart Write', category: 'Dental Chart', description: 'Update tooth conditions (caries, crowns, etc.) and record tooth procedures', defaultRoles: ['ADMIN', 'DENTIST'] },
+            { code: 'TREATMENT_PLAN_READ', name: 'Treatment Plan Read', category: 'Treatment Plans', description: 'View patient treatment plans, cost estimates, and session progression', defaultRoles: ['ADMIN', 'DENTIST'] },
+            { code: 'TREATMENT_PLAN_WRITE', name: 'Treatment Plan Write', category: 'Treatment Plans', description: 'Create and approve treatment plans and conduct treatment sessions', defaultRoles: ['ADMIN', 'DENTIST'] },
+            { code: 'PRESCRIPTION_READ', name: 'Prescription Read', category: 'Prescriptions', description: 'View issued drug prescriptions and dosage instructions', defaultRoles: ['ADMIN', 'DENTIST'] },
+            { code: 'PRESCRIPTION_WRITE', name: 'Prescription Write', category: 'Prescriptions', description: 'Issue and print medical prescriptions from the medication catalog', defaultRoles: ['ADMIN', 'DENTIST'] },
+            { code: 'BILLING_READ', name: 'Billing Read', category: 'Billing & Payments', description: 'View patient invoices, payment records, and financial receipts', defaultRoles: ['ADMIN', 'RECEPTIONIST'] },
+            { code: 'BILLING_WRITE', name: 'Billing Write', category: 'Billing & Payments', description: 'Generate bills, apply discounts, and record cash/card/insurance payments', defaultRoles: ['ADMIN', 'RECEPTIONIST'] },
+            { code: 'INVENTORY_READ', name: 'Inventory Read', category: 'Inventory & Supplies', description: 'View clinic inventory stock levels, item catalog, and suppliers', defaultRoles: ['ADMIN', 'DENTIST'] },
+            { code: 'INVENTORY_WRITE', name: 'Inventory Write', category: 'Inventory & Supplies', description: 'Perform stock adjustments, register suppliers, and issue purchase orders', defaultRoles: ['ADMIN'] },
+            { code: 'REPORTS_VIEW', name: 'Reports View', category: 'Reports & Analytics', description: 'Access clinic analytics, revenue reports, and doctor utilization charts', defaultRoles: ['ADMIN', 'RECEPTIONIST'] },
+            { code: 'USER_MANAGE', name: 'User Manage', category: 'User Administration', description: 'Create and manage staff user accounts, reset passwords, and assign permissions', defaultRoles: ['ADMIN'] }
+        ];
+
         let allUsers = [];
-        let availablePermissions = [];
+        let availablePermissions = [...SYSTEM_PERMISSIONS];
         let createModalInstance, editModalInstance, resetModalInstance, viewPermsModalInstance;
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -453,6 +474,11 @@
             resetModalInstance = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
             viewPermsModalInstance = new bootstrap.Modal(document.getElementById('viewPermsModal'));
 
+            // Immediately render permissions so modals are never empty
+            renderPermissionCheckboxes('create', availablePermissions);
+            renderPermissionCheckboxes('edit', availablePermissions);
+            applyRoleDefaults('create');
+
             await loadPermissionsMetadata();
             await loadUsers();
         });
@@ -460,11 +486,14 @@
         // Fetch all available system permissions & role defaults
         async function loadPermissionsMetadata() {
             try {
-                availablePermissions = await apiRequest('/auth/permissions');
-                renderPermissionCheckboxes('create', availablePermissions);
-                renderPermissionCheckboxes('edit', availablePermissions);
+                const perms = await apiRequest('/auth/permissions');
+                if (Array.isArray(perms) && perms.length > 0) {
+                    availablePermissions = perms;
+                    renderPermissionCheckboxes('create', availablePermissions);
+                    renderPermissionCheckboxes('edit', availablePermissions);
+                }
             } catch (err) {
-                console.error('Failed to load permissions:', err);
+                console.warn('Backend permissions endpoint not ready, using system defaults:', err.message);
             }
         }
 
@@ -694,6 +723,7 @@
         // Create User
         function openCreateUserModal() {
             document.getElementById('createUserForm').reset();
+            renderPermissionCheckboxes('create', availablePermissions);
             applyRoleDefaults('create');
             createModalInstance.show();
         }
@@ -746,7 +776,8 @@
             document.getElementById('editRole').value = user.role;
             document.getElementById('editIsActive').checked = user.isActive;
 
-            // Pre-select user's current permissions
+            // Render checkboxes and pre-select user's current permissions
+            renderPermissionCheckboxes('edit', availablePermissions);
             toggleAllPermissions('edit', false);
             const userPerms = user.permissions || [];
             userPerms.forEach(p => {
