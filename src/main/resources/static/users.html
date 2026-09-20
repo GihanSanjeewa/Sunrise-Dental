@@ -36,6 +36,30 @@
             border-radius: 4px;
             display: inline-block;
         }
+        .permissions-scroll-container {
+            max-height: 350px;
+            overflow-y: auto;
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #ffffff;
+            scrollbar-width: thin;
+            scrollbar-color: #0d9488 #f1f5f9;
+        }
+        .permissions-scroll-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .permissions-scroll-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .permissions-scroll-container::-webkit-scrollbar-thumb {
+            background: #0d9488;
+            border-radius: 4px;
+        }
+        .permissions-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #0f766e;
+        }
         .kpi-card {
             border-radius: 10px;
             border: 1px solid rgba(0,0,0,0.06);
@@ -289,7 +313,7 @@
                         </div>
                         <p class="text-muted small mb-3">Customize fine-grained permissions granted to this specific user account.</p>
 
-                        <div id="createPermissionsContainer">
+                        <div id="createPermissionsContainer" class="permissions-scroll-container">
                             <!-- Populated dynamically -->
                         </div>
                     </div>
@@ -360,7 +384,7 @@
                             </div>
                         </div>
 
-                        <div id="editPermissionsContainer">
+                        <div id="editPermissionsContainer" class="permissions-scroll-container">
                             <!-- Populated dynamically -->
                         </div>
                     </div>
